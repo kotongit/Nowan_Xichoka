@@ -16,10 +16,15 @@ export class Microfono {
     this.suave = 0;
   }
 
-  // Hay que llamarlo después de que la persona presione el botón
-  // (los navegadores no dejan iniciar audio sin una acción del usuario).
+  // Los navegadores dejan el audio "en pausa" hasta que alguien presiona una
+  // tecla o hace clic. Se llama en cada tecla/clic, por si acaso.
   reanudar() {
-    return this.contexto?.resume();
+    if (this.contexto && this.contexto.state !== "running") return this.contexto.resume();
+  }
+
+  // "running" = funcionando. "suspended" = en pausa (falta una tecla o clic).
+  get audio() {
+    return this.contexto?.state ?? "sin iniciar";
   }
 
   nivel() {
@@ -28,6 +33,7 @@ export class Microfono {
     let suma = 0;
     for (const m of this.muestras) suma += m * m;
     const rms = Math.sqrt(suma / this.muestras.length);
+    this.crudo = rms; // exactamente 0 = no está llegando nada de audio
     // Sube rápido, baja despacio: así el nivel no parpadea entre sílabas.
     this.suave = rms > this.suave ? rms : this.suave * 0.9 + rms * 0.1;
     return this.suave;
@@ -35,6 +41,8 @@ export class Microfono {
 }
 
 // Para probar sin micrófono (?simular en la URL): inventa ráfagas de "voz".
+// Solo "habla" cuando `activo` es true (la cabina lo prende al escuchar);
+// el resto del tiempo es puro ruido de fondo, como una cabina callada.
 export class MicrofonoSimulado {
   async iniciar() {
     this.t = 0;
@@ -43,6 +51,7 @@ export class MicrofonoSimulado {
     this.fuerza = 0.1;
   }
   reanudar() {}
+  get audio() { return "simulado"; }
   nivel() {
     this.t += 1 / 60;
     if (this.t > this.siguiente) {
@@ -51,7 +60,7 @@ export class MicrofonoSimulado {
       this.fuerza = 0.05 + Math.random() * 0.2;
     }
     const ruido = 0.004 + Math.random() * 0.004;
-    if (!this.hablando) return ruido;
+    if (!this.hablando || !this.activo) return ruido;
     return ruido + this.fuerza * (0.6 + 0.4 * Math.abs(Math.sin(this.t * 7) * Math.sin(this.t * 2.3)));
   }
 }

@@ -52,6 +52,8 @@
     #acceso { display: none; }
     #acceso input { font: inherit; padding: 10px; border-radius: 10px; border: 1px solid var(--linea); background: #0006; color: inherit; width: 8em; }
     .oculto { display: none !important; }
+    #micEstado.mal { color: var(--rojo); font-weight: 600; }
+    li .hora-memoria { color: var(--ambar); }
   </style>
 </head>
 <body>
@@ -86,13 +88,16 @@
 
     <section class="tarjeta">
       <h2>Micrófono</h2>
+      <p class="nota" style="margin:0" id="micEstado">Cabina sin conectar</p>
       <div class="barra"><i id="nivel"></i><b id="marca"></b></div>
       <div class="fila">
         <button id="menos" aria-label="Bajar umbral">−</button>
         <input type="range" id="umbral" min="0" max="1000" step="1">
         <button id="mas" aria-label="Subir umbral">+</button>
       </div>
+      <button id="calibrar" style="width:100%;margin-top:10px">Calibrar en silencio (3 s)</button>
       <p class="nota">La línea roja es el umbral. Con la cabina en silencio, la barra debe quedar <b>abajo</b> de la línea; al hablar, <b>arriba</b> (se pone verde). Si capta el ruido de afuera, sube el umbral. <span id="umbralTexto"></span></p>
+      <p class="nota"><b>Calibrar:</b> con la cabina vacía y callada, mide el ruido de fondo 3 segundos y pone el umbral solo.</p>
     </section>
 
     <section class="tarjeta oculto" id="prueba">

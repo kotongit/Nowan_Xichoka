@@ -6,6 +6,8 @@
 // El botón: Enter (el botón arcade se configura para mandar Enter).
 // También sirven la barra espaciadora (menos al escribir el nombre) y un clic.
 // F2 muestra el panel de depuración (nivel del micrófono, umbral, estado).
+// F3 calibra el micrófono: mide 3 s de silencio y ajusta el umbral solo
+//    (también se puede desde el panel). Háganlo con la cabina vacía y callada.
 //
 // Parámetros de la URL:
 //   ?simular   usa una voz inventada en lugar del micrófono (para probar)
@@ -22,6 +24,8 @@ const ESPERA_NOMBRE = 90;       // s sin teclear: la mariposa sale sin nombre
 const DURACION_SALIDA = 12;     // s mostrando "Su mariposa ya vuela"
 const BLOQUEO_REPOSO = 3;       // s en que el botón no responde al volver al reposo
 const AVISO_SILENCIO = 25;      // s sin hablar antes de mostrar el mensaje del silencio
+const CALIBRACION = 3;          // s de silencio que se miden al calibrar
+const VECES_EL_RUIDO = 4;       // el umbral queda en 4 veces el ruido de fondo (la mediana)
 
 const parametros = new URLSearchParams(location.search);
 const mic = parametros.has("simular") ? new MicrofonoSimulado() : new Microfono();
@@ -49,6 +53,9 @@ let soltandoDesde = 0;
 let mariposaSalida = null;
 let ultimoId = null;
 let ultimaTecla = 0;
+let calibrando = null;    // { hasta, muestras } mientras se mide el ruido de fondo
+let señalPlana = 0;       // s seguidos con nivel exactamente 0 (el audio no llega)
+let calibradoAntes = true; // si el servidor nunca ha guardado un umbral, se calibra sola al iniciar
 
 // ---------------------------------------------------------------------------
 // Medidas
@@ -75,16 +82,31 @@ const filaY = (fila) => arriba() + fila * interlineado() - desplazamiento;
 const conexion = conectar("cabina", {
   alCambiarEstado: (ok) => { conectado = ok; },
   alMensaje(m) {
-    if (m.tipo === "estado") { pausada = m.pausada; umbral = m.umbral; }
+    if (m.tipo === "estado") {
+      pausada = m.pausada;
+      umbral = m.umbral;
+      calibradoAntes = m.calibrado;
+      calibrarSiHaceFalta();
+    }
     else if (m.tipo === "pausa") pausada = m.valor;
     else if (m.tipo === "umbral") umbral = m.valor;
     else if (m.tipo === "recibida") ultimoId = m.id;
+    else if (m.tipo === "calibrar") calibrar();
     if (estado === "reposo") textosReposo();
   },
 });
 
+// Cada micrófono es distinto (uno de laptop puede no pasar de 0.01).
+// La primera vez, sin umbral guardado, la cabina mide el silencio y se ajusta sola.
+function calibrarSiHaceFalta() {
+  if (micListo && !calibradoAntes && estado === "reposo" && !calibrando) {
+    calibradoAntes = true;
+    calibrar();
+  }
+}
+
 mic.iniciar()
-  .then(() => { micListo = true; })
+  .then(() => { micListo = true; calibrarSiHaceFalta(); })
   .catch((e) => { micError = e; $("depurar").classList.add("visible"); console.error(e); });
 
 // ---------------------------------------------------------------------------
@@ -189,7 +211,30 @@ function boton() {
   }
 }
 
+function calibrar() {
+  calibrando = { hasta: reloj + CALIBRACION, muestras: [] };
+}
+
+function terminarCalibracion() {
+  const m = calibrando.muestras.sort((a, b) => a - b);
+  calibrando = null;
+  if (!m.length) return;
+  // La mediana: si alguien habla o hace ruido un momento durante la medición,
+  // casi no la mueve (el 95 % sí lo haría).
+  const ruido = m[Math.floor(m.length * 0.5)];
+  const nuevo = limitar(ruido * VECES_EL_RUIDO, 0.003, 0.1);
+  umbral = nuevo;
+  conexion.enviar({ tipo: "calibrado", valor: +nuevo.toFixed(4) });
+}
+
 window.addEventListener("keydown", (e) => {
+  mic.reanudar();
+  if (e.key === "F3") {
+    calibrar();
+    $("depurar").classList.add("visible");
+    e.preventDefault();
+    return;
+  }
   if (e.key === "F2") {
     $("depurar").classList.toggle("visible");
     e.preventDefault();
@@ -202,7 +247,7 @@ window.addEventListener("keydown", (e) => {
   }
   if (estado === "nombre") ultimaTecla = reloj;
 });
-window.addEventListener("pointerdown", (e) => { e.preventDefault(); boton(); });
+window.addEventListener("pointerdown", (e) => { e.preventDefault(); mic.reanudar(); boton(); });
 entradaNombre.addEventListener("input", () => {
   nombreEscrito.textContent = entradaNombre.value;
   ultimaTecla = reloj;
@@ -438,7 +483,13 @@ function paso() {
   reloj += dt;
   tEstado += dt;
 
+  mic.activo = estado === "escuchando";
   nivel = micListo ? mic.nivel() : 0;
+  señalPlana = micListo && mic.crudo === 0 ? señalPlana + dt : 0;
+  if (calibrando) {
+    calibrando.muestras.push(nivel);
+    if (reloj >= calibrando.hasta) terminarCalibracion();
+  }
 
   if (estado === "escuchando") escuchar(dt);
   if (estado === "nombre" && reloj - ultimaTecla > ESPERA_NOMBRE) ir("vuela");
@@ -447,12 +498,23 @@ function paso() {
   // El nivel (solo un número) se manda al panel para ajustar el umbral.
   if (reloj - ultimoNivelEnviado > 0.2) {
     ultimoNivelEnviado = reloj;
-    conexion.enviar({ tipo: "nivel", valor: +nivel.toFixed(4), hablando: !!sesion?.actual }, { importante: false });
+    conexion.enviar({ tipo: "nivel", valor: +nivel.toFixed(4), hablando: !!sesion?.actual, mic: estadoMic() },
+      { importante: false });
   }
 
   dibujar();
   actualizarDepuracion();
   requestAnimationFrame(paso);
+}
+
+// Un resumen corto del micrófono, para F2 y para el panel.
+function estadoMic() {
+  if (micError) return `error: ${micError.name}`;
+  if (!micListo) return "esperando permiso";
+  if (mic.audio === "suspended") return "audio en pausa: presiona una tecla";
+  if (señalPlana > 2) return "sin señal (nivel 0)";
+  if (calibrando) return "calibrando…";
+  return "listo";
 }
 
 function actualizarDepuracion() {
@@ -461,7 +523,7 @@ function actualizarDepuracion() {
   $("depurarTexto").textContent =
     `estado: ${estado}  (${tEstado.toFixed(1)} s)\n` +
     `servidor: ${conectado ? "conectado" : "SIN CONEXIÓN"}  ·  pausa: ${pausada ? "sí" : "no"}\n` +
-    `micrófono: ${micError ? "ERROR: " + micError.name : micListo ? "listo" : "esperando permiso…"}\n` +
+    `micrófono: ${estadoMic()}  ·  audio: ${mic.audio}\n` +
     `nivel: ${nivel.toFixed(4)}  umbral: ${umbral.toFixed(4)}  ${sesion?.actual ? "● hablando" : ""}\n` +
     `líneas: ${sesion?.lineas ?? 0}`;
   const escala = (v) => `${limitar(v / (umbral * 4), 0, 1) * 100}%`;

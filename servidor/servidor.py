@@ -45,6 +45,7 @@ CONFIG = {
     "clave": None,
     "prueba": False,
     "cabina_remota": False,
+    "memoria_minutos": 60,
 }
 
 NOMBRES_PRUEBA = [
@@ -66,7 +67,7 @@ class Estado:
         self.archivo_ajustes = archivo.with_name("ajustes.json")
         self.entradas: list[dict] = []
         self.pausada = False
-        self.umbral = 0.035          # umbral de voz del micrófono (0 a 1)
+        self.umbral = 0.006          # umbral de voz del micrófono (0 a 1); la cabina lo calibra sola
         self.ultima_entrada = 0.0
         self.filtro = Filtro()
         self.cargar()
@@ -93,13 +94,15 @@ class Estado:
     def guardar_ajustes(self):
         self._escribir(self.archivo_ajustes, {"umbral": self.umbral})
 
-    def nueva_entrada(self, nombre: str | None, rasgos: dict) -> dict:
+    def nueva_entrada(self, nombre: str | None, rasgos: dict, origen: str | None = None) -> dict:
         entrada = {
             "id": (self.entradas[-1]["id"] + 1) if self.entradas else 1,
             "nombre": self.filtro.revisar(nombre),
             "hora": datetime.now().isoformat(timespec="seconds"),
             "rasgos": limpiar_rasgos(rasgos),
         }
+        if origen:
+            entrada["origen"] = origen
         self.entradas.append(entrada)
         self.guardar()
         return entrada
@@ -150,11 +153,29 @@ estado: Estado
 conexiones = Conexiones()
 
 
+async def mariposa_de_memoria():
+    """
+    Cada hora (en punto) nace una mariposa sin nombre, sola, sin que nadie
+    entre a la cabina: en México muere una persona por suicidio
+    aproximadamente cada hora. Va marcada con "origen": "hora".
+    """
+    periodo = CONFIG["memoria_minutos"] * 60
+    while True:
+        await asyncio.sleep(periodo - (time.time() % periodo))
+        rnd = random.Random(time.time())
+        rasgos = {"duracion": rnd.randint(30, 200), "volumen": rnd.uniform(0.15, 0.5), "lineas": rnd.randint(3, 20)}
+        entrada = estado.nueva_entrada(None, rasgos, origen="hora")
+        await publicar(entrada)
+
+
 @asynccontextmanager
 async def ciclo_de_vida(app):
     global estado
     estado = Estado(CONFIG["datos"])
+    tarea = asyncio.create_task(mariposa_de_memoria()) if CONFIG["memoria_minutos"] > 0 else None
     yield
+    if tarea:
+        tarea.cancel()
 
 
 app = FastAPI(lifespan=ciclo_de_vida)
@@ -166,7 +187,8 @@ def es_local(ws: WebSocket) -> bool:
 
 
 def mensaje_estado(rol: str) -> dict:
-    mensaje = {"tipo": "estado", "pausada": estado.pausada, "umbral": estado.umbral}
+    mensaje = {"tipo": "estado", "pausada": estado.pausada, "umbral": estado.umbral,
+               "calibrado": estado.archivo_ajustes.exists()}
     if rol in ("proyeccion", "panel"):
         mensaje["entradas"] = estado.entradas
     if rol == "panel":
@@ -233,9 +255,23 @@ async def de_la_cabina(ws: WebSocket, mensaje: dict):
         await publicar(entrada)
 
     elif tipo == "nivel":
-        # Nivel del micrófono en vivo, solo para ajustar el umbral desde el panel.
+        # Nivel del micrófono en vivo (solo números), para ajustar el umbral desde el panel.
         await conexiones.enviar(["panel"], {"tipo": "nivel", "valor": mensaje.get("valor"),
-                                            "hablando": mensaje.get("hablando")})
+                                            "hablando": mensaje.get("hablando"),
+                                            "mic": str(mensaje.get("mic", ""))[:40]})
+
+    elif tipo == "calibrado":
+        # La cabina midió el ruido de fondo y propone un umbral.
+        await poner_umbral(mensaje.get("valor"))
+
+
+async def poner_umbral(valor):
+    try:
+        estado.umbral = max(0.001, min(0.5, float(valor)))
+    except (TypeError, ValueError):
+        return
+    estado.guardar_ajustes()
+    await conexiones.enviar(["cabina", "panel"], {"tipo": "umbral", "valor": estado.umbral})
 
 
 async def del_panel(mensaje: dict):
@@ -253,12 +289,10 @@ async def del_panel(mensaje: dict):
         await conexiones.enviar(["cabina", "panel", "proyeccion"], {"tipo": "pausa", "valor": estado.pausada})
 
     elif tipo == "umbral":
-        try:
-            estado.umbral = max(0.001, min(0.5, float(mensaje.get("valor"))))
-        except (TypeError, ValueError):
-            return
-        estado.guardar_ajustes()
-        await conexiones.enviar(["cabina", "panel"], {"tipo": "umbral", "valor": estado.umbral})
+        await poner_umbral(mensaje.get("valor"))
+
+    elif tipo == "calibrar":
+        await conexiones.enviar(["cabina"], {"tipo": "calibrar"})
 
     elif tipo == "prueba" and CONFIG["prueba"]:
         cantidad = max(1, min(200, int(mensaje.get("cantidad", 1))))
@@ -277,6 +311,15 @@ async def del_panel(mensaje: dict):
 # ---------------------------------------------------------------------------
 # Páginas
 # ---------------------------------------------------------------------------
+
+@app.middleware("http")
+async def sin_cache(request, call_next):
+    # Que el navegador siempre pida la versión más nueva de las páginas y
+    # scripts; si no, después de editar el código se sigue viendo el viejo.
+    respuesta = await call_next(request)
+    respuesta.headers["Cache-Control"] = "no-store"
+    return respuesta
+
 
 @app.get("/")
 async def inicio():
@@ -309,6 +352,8 @@ def main():
                         help="clave del panel de moderación (por defecto se genera una)")
     parser.add_argument("--prueba", action="store_true",
                         help="activa los botones de mariposas de prueba en el panel")
+    parser.add_argument("--memoria-minutos", type=int, default=CONFIG["memoria_minutos"],
+                        help="cada cuántos minutos nace una mariposa sin nombre sola (0 = nunca)")
     parser.add_argument("--cabina-remota", action="store_true",
                         help="permite abrir la cabina desde otra computadora (no recomendado)")
     args = parser.parse_args()
@@ -317,6 +362,7 @@ def main():
     CONFIG["clave"] = args.clave or f"{secrets.randbelow(10000):04d}"
     CONFIG["prueba"] = args.prueba
     CONFIG["cabina_remota"] = args.cabina_remota
+    CONFIG["memoria_minutos"] = args.memoria_minutos
 
     ip = ip_local()
     print()
@@ -325,6 +371,8 @@ def main():
     print(f"  Proyección:  http://localhost:{args.puerto}/proyeccion/   (o http://{ip}:{args.puerto}/proyeccion/)")
     print(f"  Panel:       http://{ip}:{args.puerto}/panel/?clave={CONFIG['clave']}")
     print(f"  Datos:       {CONFIG['datos']}")
+    if args.memoria_minutos:
+        print(f"  Mariposa sin nombre cada {args.memoria_minutos} min (en punto).")
     if args.prueba:
         print("  MODO PRUEBA: el panel puede crear mariposas de prueba.")
     print()

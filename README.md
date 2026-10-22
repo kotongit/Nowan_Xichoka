@@ -88,6 +88,7 @@ Y abrir `http://localhost:8000/` para ver todas las páginas.
 | **Enter** | Es “el botón”. Configuren el botón arcade (encoder USB) para que mande **Enter**. |
 | Espacio / clic | También cuentan como botón (menos al escribir el nombre). |
 | **F2** | Muestra/oculta la depuración: estado, nivel del micrófono, umbral, conexión. |
+| **F3** | Calibra el micrófono (3 s de silencio). Háganlo con la cabina vacía y callada. |
 
 Flujo: flama → botón → instrucciones → la persona habla (renglones) → botón → los renglones
 suben como humo → “Si quieres, escribe su nombre” → Enter → “Su mariposa ya vuela. Sal a buscarla.”
@@ -99,6 +100,13 @@ Tiempos automáticos (en `web/cabina/cabina.js`, arriba del archivo):
 
 **El micrófono:** el navegador solo deja usarlo en `localhost`, por eso la cabina siempre se
 abre en la misma computadora que el servidor. `iniciar.bat` ya da el permiso solo.
+
+**Calibración:** cada micrófono da niveles muy distintos (uno de laptop puede no pasar de 0.01).
+La primera vez que arranca, la cabina mide 3 s de silencio y pone el umbral sola (4 veces la
+mediana del ruido de fondo). Después se guarda en `datos/ajustes.json`. Para recalibrar en el lugar real:
+**F3** en la cabina o **Calibrar** en el panel, con la cabina vacía y en silencio.
+Si F2 dice “audio en pausa”, presionen cualquier tecla; si dice “sin señal”, revisen qué
+micrófono está elegido en el sistema.
 
 ### Instrucciones de voz
 
@@ -112,6 +120,18 @@ Graben (Audacity) tres archivos MP3 y pónganlos en `audio/` con estos nombres e
 
 Mientras no existan, la cabina usa la voz sintética del navegador como respaldo.
 
+### La mariposa de cada hora
+
+Cada hora en punto nace sola una mariposa **sin nombre**, sin que nadie entre a la cabina.
+En México muere aproximadamente una persona por suicidio cada hora (INEGI registró
+8,837 en 2023, unas 24 al día). Se ve igual que las demás mariposas sin nombre; en el
+JSON y en el panel va marcada como `"origen": "hora"`.
+
+- Cambiar el intervalo: `servidor.py --memoria-minutos 60` (0 = desactivada).
+- Para ensayarla sin esperar una hora: `--memoria-minutos 1`.
+- Sugerencia: explicarla en el letrero de afuera e incluir la **Línea de la Vida: 800 911 2000**
+  (gratuita, 24 horas). Confirmen el número antes de imprimir.
+
 ---
 
 ## El panel de moderación (celular)
@@ -121,7 +141,7 @@ Mientras no existan, la cabina usa la voz sintética del navegador como respaldo
 
 Desde ahí:
 - **Pausar cabina** — nadie nuevo puede empezar; quien está adentro termina normal.
-- **Micrófono** — barra en vivo y control del umbral. Con la cabina en silencio la barra debe
+- **Micrófono** — estado (en rojo si hay un problema), barra en vivo, control del umbral y botón **Calibrar**. Con la cabina en silencio la barra debe
   quedar *abajo* de la línea roja; al hablar, *arriba*. Si capta ruido de afuera, suban el umbral.
   El umbral se guarda en `datos/ajustes.json`.
 - **Quitar nombre** — la mariposa (o flor) se queda, pero sin nombre. Se toca dos veces.
@@ -183,7 +203,7 @@ Pruebas automáticas:
 |---|---|
 | Se trabó o se reinició algo | Cierren todo y vuelvan a abrir `iniciar`. Todo se reconstruye desde `datos/mariposas.json`. |
 | Punto rojo arriba a la derecha de la proyección | Perdió conexión con el servidor; se reconecta sola. Revisen que la ventana del servidor siga abierta. |
-| La cabina no dibuja renglones | F2: ¿dice “micrófono: ERROR”? Revisen que el micrófono esté conectado y elegido en Windows. ¿El nivel nunca pasa el umbral? Bájenlo desde el panel. |
+| La cabina no dibuja renglones | Casi siempre es el umbral: **calibren** (F3 o el panel). Si F2 dice “error”, revisen que el micrófono esté conectado y elegido en el sistema. |
 | Dibuja renglones sin que nadie hable | Suban el umbral desde el panel. |
 | El panel no abre en el celular | Mismo Wi-Fi que la computadora. El firewall de Windows puede preguntar si permite Python: digan que sí (red privada). |
 | La proyección se ve deslavada | Oscurezcan el espacio. El fondo ya es negro puro. |

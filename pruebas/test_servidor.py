@@ -18,6 +18,7 @@ def cliente(tmp_path, monkeypatch):
     # El cliente de pruebas no viene de localhost.
     monkeypatch.setitem(servidor.CONFIG, "cabina_remota", True)
     monkeypatch.setattr(servidor, "MIN_ENTRE_ENTRADAS", 0)
+    monkeypatch.setitem(servidor.CONFIG, "memoria_minutos", 0)
     with TestClient(servidor.app) as c:
         yield c
 
@@ -33,7 +34,7 @@ def test_flujo_completo(cliente, tmp_path):
     with cliente.websocket_connect("/ws?rol=proyeccion") as proyeccion, \
          cliente.websocket_connect("/ws?rol=cabina") as cabina:
         assert recibir_hasta(proyeccion, "estado")["entradas"] == []
-        recibir_hasta(cabina, "estado")
+        assert recibir_hasta(cabina, "estado")["calibrado"] is False
 
         cabina.send_json({"tipo": "mariposa", "nombre": "  María Guadalupe ",
                           "rasgos": {"duracion": 94, "volumen": 0.42, "lineas": 17, "texto": "no debe pasar"}})
@@ -82,3 +83,29 @@ def test_la_lista_sobrevive_un_reinicio(cliente, tmp_path):
 
     otro = servidor.Estado(tmp_path / "mariposas.json")
     assert [e["nombre"] for e in otro.entradas] == ["Carmen", "Ernesto", None]
+
+
+def test_mariposa_de_cada_hora(tmp_path, monkeypatch):
+    monkeypatch.setitem(servidor.CONFIG, "datos", tmp_path / "mariposas.json")
+    monkeypatch.setitem(servidor.CONFIG, "memoria_minutos", 0.02)  # 1.2 s, para no esperar una hora
+    with TestClient(servidor.app) as c, c.websocket_connect("/ws?rol=proyeccion") as proyeccion:
+        recibir_hasta(proyeccion, "estado")
+        entrada = recibir_hasta(proyeccion, "nueva")["entrada"]
+    assert entrada["nombre"] is None
+    assert entrada["origen"] == "hora"
+
+
+def test_calibrar_desde_el_panel(cliente):
+    with cliente.websocket_connect("/ws?rol=panel&clave=1234") as panel, \
+         cliente.websocket_connect("/ws?rol=cabina") as cabina:
+        recibir_hasta(panel, "estado")
+        recibir_hasta(cabina, "estado")
+        panel.send_json({"tipo": "calibrar"})
+        recibir_hasta(cabina, "calibrar")
+        cabina.send_json({"tipo": "calibrado", "valor": 0.012})
+        assert recibir_hasta(panel, "umbral")["valor"] == 0.012
+    assert servidor.estado.umbral == 0.012
+
+    # Ya hay umbral guardado: la cabina no se vuelve a calibrar sola.
+    with cliente.websocket_connect("/ws?rol=cabina") as cabina:
+        assert recibir_hasta(cabina, "estado")["calibrado"] is True

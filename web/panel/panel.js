@@ -62,10 +62,14 @@ function alMensaje(m) {
       $("chipCabina").classList.toggle("ok", m.cabina > 0);
       $("chipProyeccion").classList.toggle("ok", m.proyeccion > 0);
       break;
-    case "nivel":
+    case "nivel": {
+      const mic = m.mic || "";
+      $("micEstado").textContent = `Micrófono: ${mic}`;
+      $("micEstado").classList.toggle("mal", mic !== "listo" && mic !== "calibrando…");
       $("nivel").style.width = enBarra(m.valor ?? 0);
       $("nivel").classList.toggle("hablando", !!m.hablando || (m.valor ?? 0) > umbral);
       break;
+    }
   }
 }
 
@@ -106,10 +110,13 @@ function pintarLista() {
     que.className = "que";
     const nombre = document.createElement("div");
     nombre.className = e.nombre ? "nombre" : "nombre sin";
-    nombre.textContent = e.nombre ?? "sin nombre";
+    nombre.textContent = e.nombre ?? (e.origen === "hora" ? "sin nombre · la de cada hora" : "sin nombre");
+    if (e.origen === "hora") nombre.classList.add("hora-memoria");
     const cuando = document.createElement("div");
     cuando.className = "cuando";
-    cuando.textContent = `#${e.id} · ${hora(e.hora)} · ${e.rasgos.duracion} s · ${e.rasgos.lineas} líneas`;
+    cuando.textContent = e.origen === "hora"
+      ? `#${e.id} · ${hora(e.hora)}`
+      : `#${e.id} · ${hora(e.hora)} · ${e.rasgos.duracion} s · ${e.rasgos.lineas} líneas`;
     que.append(nombre, cuando);
     li.append(que);
     if (e.nombre) {
@@ -138,6 +145,7 @@ $("pausa").onclick = () => conexion.enviar({ tipo: "pausar", valor: !$("pausa").
 $("umbral").oninput = (e) => mandarUmbral(deControl(+e.target.value));
 $("menos").onclick = () => mandarUmbral(umbral / 1.15);
 $("mas").onclick = () => mandarUmbral(umbral * 1.15);
+$("calibrar").onclick = () => conexion.enviar({ tipo: "calibrar" });
 for (const b of document.querySelectorAll("#prueba button")) {
   b.onclick = () => conexion.enviar({ tipo: "prueba", cantidad: +b.dataset.cantidad });
 }
