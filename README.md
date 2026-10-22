@@ -192,3 +192,9 @@ Pruebas automáticas:
 
 El servidor corre en la computadora de la **cabina** (por el micrófono). En la del proyector
 abran `http://IP-DE-LA-CABINA:8000/proyeccion/` en Chrome en modo kiosco.
+
+---
+
+## Licencia
+
+MIT. Ver [LICENSE](LICENSE): cualquiera puede usar, modificar y compartir el código, siempre que conserve el aviso de autoría.
