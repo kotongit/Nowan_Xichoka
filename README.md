@@ -29,6 +29,8 @@ cabina (navegador)  ──WebSocket──►  servidor (Python)  ──WebSocket
 | `web/panel/` | Panel de moderación para el celular | Servidor y filtro |
 | `audio/` | Instrucciones de voz grabadas, una carpeta por voz (ver abajo) | Construcción |
 | `datos/` | Aquí se guarda `mariposas.json` | — |
+| `docs/Nowan_Xichoka.pdf` | El documento del proyecto (versión final) | Todos |
+| `docs/fuente/` | De dónde sale el PDF: `documento.html` + `construir.py` (WeasyPrint) | — |
 
 Todo corre en red local. **No necesita internet** el día de la exposición (solo para instalar).
 

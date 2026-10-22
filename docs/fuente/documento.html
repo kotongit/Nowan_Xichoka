@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Nowan Xichoka — Versión final</title>
+<style>
+  @font-face { font-family: Cinzel; font-weight: 400; src: url(fuentes/cinzel-400-normal.woff2); }
+  @font-face { font-family: Cinzel; font-weight: 700; src: url(fuentes/cinzel-700-normal.woff2); }
+  @font-face { font-family: Cinzel; font-weight: 900; src: url(fuentes/cinzel-900-normal.woff2); }
+  @font-face { font-family: Corm; font-weight: 400; src: url(fuentes/cormorant-garamond-400-normal.woff2); }
+  @font-face { font-family: Corm; font-weight: 400; font-style: italic; src: url(fuentes/cormorant-garamond-400-italic.woff2); }
+  @font-face { font-family: Corm; font-weight: 600; src: url(fuentes/cormorant-garamond-600-normal.woff2); }
+  @font-face { font-family: Corm; font-weight: 600; font-style: italic; src: url(fuentes/cormorant-garamond-600-italic.woff2); }
+  @font-face { font-family: Corm; font-weight: 700; src: url(fuentes/cormorant-garamond-700-normal.woff2); }
+  @font-face { font-family: Inter; font-weight: 400; src: url(fuentes/inter-400-normal.woff2); }
+  @font-face { font-family: Inter; font-weight: 600; src: url(fuentes/inter-600-normal.woff2); }
+  @font-face { font-family: VT323; src: url(fuentes/vt323-400-normal.woff2); }
+
+  :root {
+    --fondo: #121014; --tarjeta: #1b171c; --linea: #3b3226;
+    --oro: #e6b552; --oro-tenue: #c9a352; --naranja: #f08a24; --rosa: #e2457a; --morado: #8a4fd0; --verde: #2e9a59;
+    --texto: #ece2d4; --tenue: #a8998a; --ambar: #ffb547;
+  }
+  @page {
+    size: letter;
+    margin: 0.75in 0.72in 0.85in;
+    background: var(--fondo);
+    @bottom-left {
+      content: "NOWAN XICHOKA · VERSIÓN FINAL";
+      font: 6.5pt Cinzel; letter-spacing: 2.4pt; color: #6e604f;
+      vertical-align: top; padding-top: 0.22in;
+    }
+    @bottom-right {
+      content: counter(page);
+      font: 8pt Cinzel; color: #6e604f;
+      vertical-align: top; padding-top: 0.2in;
+    }
+  }
+  @page :first { margin: 0; @bottom-left { content: none; } @bottom-right { content: none; } }
+
+  /* Marco dorado en cada página */
+  .marco { position: fixed; top: -0.45in; bottom: -0.55in; left: -0.42in; right: -0.42in;
+           border: 0.8pt solid #8c6d34; z-index: -1; }
+
+  html { font-family: Corm, Georgia, serif; font-size: 11.2pt; line-height: 1.42; color: var(--texto); }
+  body { margin: 0; }
+  p { margin: 0 0 7pt; }
+  b, strong { color: var(--oro); font-weight: 700; }
+  em { color: var(--oro); }
+  code, .mono { font-family: VT323, monospace; color: var(--ambar); font-size: 12pt; }
+
+  h1 { font: 900 20pt Cinzel; color: var(--oro); margin: 0 0 2pt; letter-spacing: .5pt; font-variant: small-caps; }
+  h1 .num { color: var(--naranja); margin-right: 4pt; }
+  h1 + .adorno { text-align: center; margin: 0 0 12pt; }
+  h2 { font: 700 10.5pt Cinzel; color: var(--oro); margin: 14pt 0 5pt; letter-spacing: 1.2pt; font-variant: small-caps; }
+  .seccion { page-break-before: always; }
+  .seguido { margin-top: 22pt; }
+
+  ul { margin: 0 0 8pt; padding-left: 12pt; }
+  li { margin-bottom: 2.5pt; }
+  li::marker { color: var(--naranja); }
+
+  .lead { font-style: italic; font-size: 13pt; color: var(--oro); line-height: 1.35; }
+  .centro { text-align: center; }
+  .cita { text-align: center; font-style: italic; font-size: 13pt; color: var(--oro); margin: 10pt 0; }
+  .nota { font-size: 9.6pt; color: var(--tenue); }
+
+  .caja { border-left: 2.5pt solid var(--oro); background: var(--tarjeta); padding: 8pt 12pt; margin: 8pt 0; }
+  .caja ul { margin: 0; }
+  .caja.rosa { border-left-color: var(--rosa); }
+
+  table { width: 100%; border-collapse: collapse; margin: 6pt 0 10pt; font-size: 10.4pt; }
+  th { background: var(--oro); color: #1a1408; font: 700 7.2pt Cinzel; letter-spacing: 1.4pt; text-align: left; padding: 5pt 7pt; text-transform: uppercase; }
+  td { padding: 6pt 7pt; border-bottom: .6pt solid var(--linea); vertical-align: top; }
+  td.capa { font: 7pt Cinzel; letter-spacing: 1.4pt; color: var(--naranja); width: 23%; }
+  tr.grupo td { font: 7.2pt Cinzel; letter-spacing: 1.6pt; color: var(--naranja); padding-top: 10pt; border-bottom: none; }
+  .caja-check { display: inline-block; width: 7pt; height: 7pt; border: .8pt solid var(--tenue); margin-right: 6pt; }
+  .tag { font: 6.4pt Cinzel; letter-spacing: 1.2pt; padding: 1pt 4pt; border-radius: 1.5pt; white-space: nowrap; }
+  .tag.ind { background: #e2610f; color: #1a0c04; }
+  .tag.imp { background: #f6c21c; color: #1a1408; }
+  .tag.ext { background: #8a4fd0; color: #fff; }
+  .tag.ok { background: var(--verde); color: #fff; }
+
+  /* Portada */
+  .portada { height: 11in; position: relative; background: var(--fondo); }
+  .portada .papel { position: absolute; top: 0; left: 0; }
+  .portada .recuadro { position: absolute; top: 1.85in; left: .45in; right: .45in; bottom: .45in;
+                       border: 1pt solid var(--oro-tenue); }
+  .portada .recuadro::after { content: ""; position: absolute; inset: 5pt; border: .5pt solid #6e5428; }
+  .portada .flor-esquina { position: absolute; }
+  .portada .titulo { position: absolute; top: 2.45in; left: 0; right: 0; text-align: center; }
+  .portada .titulo h1 { font: 900 40pt Cinzel; letter-spacing: 2pt; margin: 6pt 0 4pt; font-variant: normal; }
+  .portada .titulo .sub { font-style: italic; font-size: 17pt; color: var(--texto); }
+  .portada .titulo .tema { font: 7.5pt Cinzel; letter-spacing: 3.2pt; color: var(--tenue); margin-top: 12pt; }
+  .portada .sello { position: absolute; top: 5.2in; left: 0; right: 0; text-align: center; }
+  .portada .sello span { display: inline-block; border: 1.5pt solid var(--rosa); color: var(--rosa); padding: 4pt 12pt;
+                         font: 900 11pt Cinzel; letter-spacing: 3pt; transform: rotate(-4deg); }
+  .portada .fila-flores { position: absolute; top: 6.9in; left: 0; right: 0; text-align: center; }
+  .portada .fila-flores svg { vertical-align: middle; margin: 0 4pt; }
+  .portada .pie { position: absolute; bottom: 0.95in; left: 0; right: 0; text-align: center; }
+  .portada .pie .materia { font: 700 8pt Cinzel; letter-spacing: 1.8pt; color: var(--oro); }
+  .portada .pie .fecha { font-size: 10pt; color: var(--tenue); margin-top: 2pt; }
+
+  /* Pasos de la experiencia */
+  .paso { position: relative; padding-left: 28pt; margin-bottom: 6pt; }
+  .paso .n { position: absolute; left: 0; top: 0; width: 17pt; height: 17pt; border: 1pt solid var(--oro); border-radius: 50%;
+             text-align: center; font: 700 9pt/17pt Cinzel; color: var(--oro); }
+  .paso .t { font: 700 8.3pt Cinzel; letter-spacing: 1.2pt; color: var(--oro); }
+  .paso .voz { font-family: VT323; color: var(--ambar); font-size: 12pt; line-height: 1.2; }
+
+  /* Arquitectura */
+  .arq { display: flex; align-items: flex-start; gap: 0; margin: 8pt 0; }
+  .arq .bloque { flex: 1; border: .8pt solid var(--oro-tenue); padding: 7pt 8pt; background: var(--tarjeta); font-size: 9.6pt; }
+  .arq .bloque h3 { font: 700 8pt Cinzel; letter-spacing: 1.4pt; color: var(--oro); margin: 0 0 3pt; border-bottom: .6pt solid var(--linea); padding-bottom: 3pt; }
+  .arq .bloque .tec { font-family: VT323; color: var(--naranja); font-size: 11pt; }
+  .arq .bloque ul { padding-left: 9pt; margin: 2pt 0 0; }
+  .arq .flecha { width: 44pt; text-align: center; padding-top: 50pt; font-family: VT323; color: var(--naranja); font-size: 9pt; }
+  .arq .flecha b { display: block; font: 400 18pt Inter; color: var(--naranja); }
+  .panelcaja { width: 62%; margin: 4pt auto 10pt; border: .8pt solid var(--oro-tenue); background: var(--tarjeta); padding: 7pt 10pt; font-size: 9.8pt; }
+  .panelcaja h3 { font: 700 8pt Cinzel; letter-spacing: 1.4pt; color: var(--oro); margin: 0 0 3pt; }
+  pre { font-family: VT323; color: var(--ambar); font-size: 11pt; line-height: 1.25; background: #0b0905; border: .6pt solid var(--linea); padding: 9pt 12pt; margin: 6pt 0 10pt; }
+
+  .dos { display: flex; gap: 12pt; }
+  .dos > div { flex: 1; }
+  .opcion { background: var(--tarjeta); padding: 8pt 11pt; border-left: 2.5pt solid var(--verde); }
+  .opcion.b { border-left-color: var(--morado); }
+  .opcion h3 { font: 700 8.5pt Cinzel; letter-spacing: 1.2pt; color: var(--oro); margin: 0 0 4pt; }
+
+  .ilustracion { text-align: center; }
+  .ilustracion .pie-ilus { font-style: italic; color: var(--tenue); font-size: 9.6pt; margin-top: 2pt; }
+
+  /* Línea de tiempo */
+  .tiempo { border-left: 1.2pt solid var(--naranja); margin: 8pt 0 8pt 6pt; padding-left: 14pt; }
+  .tiempo .hito { position: relative; margin-bottom: 7pt; }
+  .tiempo .hito::before { content: ""; position: absolute; left: -18.6pt; top: 3pt; width: 7pt; height: 7pt; border-radius: 50%; background: var(--naranja); }
+  .tiempo .hito.clave::before { background: var(--rosa); }
+  .tiempo .hito.hecho::before { background: var(--verde); }
+  .tiempo .cuando { font: 700 8.2pt Cinzel; letter-spacing: 1.2pt; color: var(--oro); }
+
+  .roles td:last-child { color: var(--tenue); width: 22%; }
+  .memoria { background: var(--tarjeta); border: .8pt solid #5a4a2c; padding: 12pt 16pt; margin: 10pt 0; }
+  .memoria p:last-child { margin: 0; }
+  .carpetas { font-family: VT323; color: var(--ambar); font-size: 11.5pt; line-height: 1.25; white-space: pre; }
+  .centro svg { vertical-align: middle; margin: 0 5pt; }
+</style>
+</head>
+<body>
+<div class="marco"></div>
+
+<!-- ======================= PORTADA ======================= -->
+<section class="portada">
+  <div class="papel">{{PAPEL}}</div>
+  <div class="recuadro"></div>
+  <div class="flor-esquina" style="top:1.6in; left:.2in">{{FLOR70}}</div>
+  <div class="flor-esquina" style="top:1.6in; right:.2in">{{FLOR70}}</div>
+  <div class="flor-esquina" style="bottom:.2in; left:.2in">{{FLOR70}}</div>
+  <div class="flor-esquina" style="bottom:.2in; right:.2in">{{FLOR70}}</div>
+  <div class="titulo">
+    {{MARIPOSA_GRANDE}}
+    <h1>NOWAN XICHOKA</h1>
+    <div class="sub">“Llora conmigo”</div>
+    <div class="tema">UNA OFRENDA QUE ESCUCHA · DÍA DE MUERTOS 2026</div>
+  </div>
+  <div class="sello"><span>VERSIÓN FINAL</span></div>
+  <div class="fila-flores">{{FLOR32}}{{FLOR32}}{{MARIPOSA}}{{FLOR32}}{{FLOR32}}</div>
+  <div class="pie">
+    <div class="materia">TECNOLOGÍAS DE LA INFORMACIÓN E INNOVACIÓN DIGITAL</div>
+    <div class="fecha">Proyecto final · Octubre 2026</div>
+  </div>
+</section>
+
+<!-- ======================= 01 ======================= -->
+<section class="seccion">
+  <h1><span class="num">01</span> ¿Qué es Nowan Xichoka?</h1>
+  <div class="adorno">{{ADORNO}}</div>
+
+  <div class="dos" style="align-items:center">
+    <div style="flex:5"><p class="lead"><i>Nowan xichoka</i> significa “llora conmigo” en náhuatl. Es una ofrenda que no se arma con objetos, sino con historias.</p></div>
+    <div style="flex:1; text-align:right">{{MARIPOSA}}</div>
+  </div>
+
+  <p>Es una instalación interactiva para Día de Muertos. Dentro de una cabina privada hay una computadora vieja, amarillenta, como las que había en las casas de nuestros abuelos. Por dentro esconde una computadora moderna. Ahí, cualquier persona puede sentarse y <b>contar en voz alta la historia de alguien que ya se fue</b>.</p>
+  <p>La computadora no entiende las palabras y no las guarda. Solo escucha: cada cosa que la persona dice aparece en la pantalla como una <b>línea difuminada</b>, como una carta escrita a mano que nadie más puede leer. Al terminar, si quiere, la persona escribe el nombre de su ser querido, como quien firma esa carta.</p>
+  <p>En ese momento, en una pared proyectada afuera de la cabina, <b>nace una mariposa monarca</b> que vuela con ese nombre. Las 150 historias más recientes vuelan como mariposas; las anteriores bajan, se posan y <b>florecen como cempasúchil</b>. Con el paso de las horas, la pared se convierte en un campo naranja lleno de nombres.</p>
+  <p>Y cada hora, sin que nadie entre a la cabina, nace sola una mariposa más, sin nombre, por quienes murieron por suicidio en México (ver sección 05).</p>
+
+  <p class="cita">La historia se cuenta, se escucha y se deja ir.<br>Solo queda la mariposa.</p>
+
+  <h2>Por qué mariposas y cempasúchil</h2>
+  <p>En la tradición mexicana, las mariposas monarca que llegan a finales de octubre se asocian con las almas que regresan a visitarnos, y el cempasúchil es la flor que, con su color y su aroma, les marca el camino a casa. El proyecto une ambas imágenes: la mariposa es la visita que llega; la flor es la memoria que se queda.</p>
+
+  <h2>Por qué es un proyecto de TIID</h2>
+  <div class="caja"><ul>
+    <li><b>Sistema cliente–servidor en tiempo real:</b> la cabina, la proyección y un panel de moderación en el celular se comunican por red local mediante WebSockets.</li>
+    <li><b>Procesamiento de audio en el navegador:</b> detección de voz y análisis de volumen con la Web Audio API, con calibración automática del micrófono, sin grabar ni transcribir nada.</li>
+    <li><b>Gráficos generativos:</b> cada mariposa es única y se genera a partir de cómo habló la persona.</li>
+    <li><b>Privacidad por diseño:</b> el sistema está construido para no poder guardar lo que se dice.</li>
+    <li><b>Hardware reutilizado:</b> se rescata equipo de cómputo obsoleto y se le da una segunda vida.</li>
+    <li><b>Software libre:</b> el código es público (licencia MIT) y tiene pruebas automáticas.</li>
+  </ul></div>
+  <p class="nota">Nota de diseño: la primera idea incluía una inteligencia artificial local que escuchara y respondiera. La descartamos a propósito: no queríamos que una máquina interpretara el duelo de nadie, ni arriesgarnos a escribir mal el nombre de un ser querido. La tecnología aquí no responde: acompaña.</p>
+</section>
+
+<!-- ======================= 02 ======================= -->
+<section class="seccion">
+  <h1><span class="num">02</span> La experiencia</h1>
+  <div class="adorno">{{ADORNO}}</div>
+  <p>Todo el recorrido se maneja con <b>la voz y un botón</b>. No hace falta saber usar una computadora. Las instrucciones se escuchan por una bocina, grabadas por <b>varias voces del equipo</b> (a cada persona le toca una al azar), y también se leen en pantalla.</p>
+
+  <div class="paso"><div class="n">1</div><div class="t">ENTRAR A LA CABINA</div>
+    Un espacio cerrado con cortinas, papel picado, velas LED y la computadora vieja encendida, mostrando una flama que respira suavemente.</div>
+  <div class="paso"><div class="n">2</div><div class="t">PRESIONAR EL BOTÓN</div>
+    <div class="voz">“Este es un espacio para recordar. Cuéntanos de quien extrañas. Nada de lo que digas se guarda. Cuando termines, presiona el botón.”</div></div>
+  <div class="paso"><div class="n">3</div><div class="t">CONTAR LA HISTORIA</div>
+    Cada vez que la persona habla aparece una línea difuminada, con trazos que parecen letra cursiva. Su largo depende de cuánto habló; su altura, grosor y temblor, de la intensidad de la voz. Las líneas se acumulan como renglones de una carta. Si la persona no dice nada por un rato, aparece con suavidad:
+    <div class="voz">“Si no quieres decir nada, también está bien. El silencio también es una forma de recordar.”</div></div>
+  <div class="paso"><div class="n">4</div><div class="t">PRESIONAR EL BOTÓN OTRA VEZ</div>
+    Las líneas se elevan y se desvanecen como humo, como si la historia saliera de la cabina.
+    <div class="voz">“Si quieres, escribe su nombre. Si no, presiona el botón.”</div></div>
+  <div class="paso"><div class="n">5</div><div class="t">FIRMAR (OPCIONAL)</div>
+    La persona escribe el nombre en el teclado, como una firma al pie de la carta, y presiona el botón. Si presiona sin escribir, la mariposa vuela sin nombre.</div>
+  <div class="paso"><div class="n">6</div><div class="t">SALIR A BUSCARLA</div>
+    <div class="voz">“Su mariposa ya vuela. Sal a buscarla.”</div>
+    En la pantalla, su mariposa se eleva y sale. Afuera, en la pared, la recién llegada brilla durante 45 segundos para que la persona la encuentre entre las demás.</div>
+
+  <div class="ilustracion" style="margin-top:8pt">{{PANTALLA}}
+    <div class="pie-ilus">Lo que se ve dentro de la cabina: renglones que nadie puede leer.</div></div>
+</section>
+
+<!-- ======================= 03 ======================= -->
+<section class="seccion">
+  <h1><span class="num">03</span> Cómo funciona</h1>
+  <div class="adorno">{{ADORNO}}</div>
+  <p>Las pantallas están hechas con <b>HTML, CSS y JavaScript</b> y un <b>pequeño servidor en Python</b> (FastAPI) las conecta. No se necesita internet ni inteligencia artificial: todo corre en una red local. Un solo doble clic (<code>iniciar.bat</code> en Windows, <code>iniciar.command</code> en Mac) abre el servidor y las dos pantallas en modo kiosco.</p>
+
+  <div class="arq">
+    <div class="bloque"><h3>CABINA</h3><div class="tec">HTML + JS + canvas</div><ul>
+      <li>Micrófono con Web Audio API</li>
+      <li>Detecta la voz por volumen; se calibra sola</li>
+      <li>Dibuja los renglones</li>
+      <li>Botón (Enter) y teclado para el nombre</li>
+      <li>Instrucciones con una voz del equipo al azar</li></ul></div>
+    <div class="flecha"><b>→</b>WebSocket</div>
+    <div class="bloque"><h3>SERVIDOR</h3><div class="tec">Python + FastAPI</div><ul>
+      <li>Recibe cada nueva mariposa</li>
+      <li>Pasa el nombre por el filtro</li>
+      <li>Guarda la lista en un JSON</li>
+      <li>Hace nacer la mariposa de cada hora</li>
+      <li>Avisa a la proyección y al panel</li></ul></div>
+    <div class="flecha"><b>→</b>WebSocket</div>
+    <div class="bloque"><h3>PROYECCIÓN</h3><div class="tec">HTML + canvas</div><ul>
+      <li>150 mariposas en vuelo</li>
+      <li>El resto: campo de cempasúchil</li>
+      <li>Aterrizaje y floración</li>
+      <li>Al reiniciar, reconstruye todo desde el JSON</li></ul></div>
+  </div>
+
+  <div class="panelcaja"><h3>PANEL DE MODERACIÓN · CELULAR DE UN INTEGRANTE</h3><ul style="margin:0; padding-left:10pt">
+    <li>Lista de entradas recientes, con botón para quitar un nombre (la mariposa se queda, sin nombre)</li>
+    <li>Botón de “pausar cabina” por si alguien intenta saturar la proyección</li>
+    <li>Estado del micrófono, barra de nivel en vivo, control de sensibilidad y botón de calibrar</li>
+    <li>Protegido con una clave que aparece al abrir el servidor</li></ul></div>
+
+  <h2>Lo que viaja por la red</h2>
+  <p>Nunca viaja audio ni texto de la historia. Solo esto:</p>
+<pre>{
+  "id": 214,
+  "nombre": "María Guadalupe",        // o null si no escribió nombre
+  "hora": "2026-10-30T19:42:10",
+  "rasgos": { "duracion": 94, "volumen": 0.42, "lineas": 17 }
+}</pre>
+  <p class="nota">El servidor descarta cualquier otro dato que le llegue. Lo mismo se guarda en el archivo: nada más.</p>
+
+  <h2>Una sola computadora o dos</h2>
+  <div class="dos">
+    <div class="opcion"><h3>Opción A · recomendada</h3>La computadora escondida tiene dos salidas de video: una al monitor de la cabina y otra al proyector (con un cable HDMI largo). Corre el servidor y las dos páginas. Menos piezas, menos fallas.</div>
+    <div class="opcion b"><h3>Opción B</h3>El servidor corre en la computadora de la cabina (por el micrófono); otra junto al proyector abre la proyección por la red local, con un router o hotspot.</div>
+  </div>
+  <p class="nota" style="margin-top:7pt">Detalle técnico: los navegadores solo permiten usar el micrófono en páginas seguras. Por eso la cabina siempre se abre desde <code>localhost</code>, en la misma computadora donde corre el servidor; el servidor rechaza una cabina que llegue desde otra computadora.</p>
+</section>
+
+<!-- ======================= 04 ======================= -->
+<section>
+  <h1 class="seguido"><span class="num">04</span> Reglas visuales</h1>
+  <div class="adorno">{{ADORNO}}</div>
+  <div class="dos">
+    <div style="flex:1.25">
+      <h2 style="margin-top:0">Las líneas de la cabina</h2>
+      <ul>
+        <li>Una línea por cada vez que la persona habla, separada por pausas.</li>
+        <li><b>Largo</b> = cuánto tiempo habló. <b>Altura, grosor y temblor</b> = intensidad de la voz.</li>
+        <li>Trazos que dan vueltas como letra cursiva, siempre difuminados, en ámbar sobre fondo oscuro.</li>
+        <li>Cuando la pantalla se llena, las de arriba suben y se desvanecen como humo.</li>
+      </ul>
+      <h2>Cada mariposa es única</h2>
+      <ul>
+        <li><b>Tamaño de alas:</b> según la duración de la historia.</li>
+        <li><b>Calidez del color:</b> según el volumen promedio (voz bajita, dorada; voz fuerte, naranja profundo).</li>
+        <li><b>Ritmo de vuelo:</b> según el número de líneas.</li>
+        <li>Con nombre: el nombre la acompaña en letra clara. Sin nombre: vuela con un brillo dorado, para que no parezca un error.</li>
+        <li>La recién llegada brilla 45 segundos para que su persona la encuentre.</li>
+      </ul>
+    </div>
+    <div class="ilustracion" style="flex:1; padding-top:14pt">
+      {{MARIPOSA_ILUSTRACION}}
+      <div class="pie-ilus">Cada renglón es algo que se dijo… y al final, una mariposa.</div>
+      <div style="margin-top:14pt">{{FLOR60}}{{FLOR60}}</div>
+      <div class="pie-ilus">La flor es la memoria que se queda.</div>
+    </div>
+  </div>
+
+  <h2>La regla de las 150</h2>
+  <p>En la proyección vuelan, como máximo, las 150 mariposas más recientes. Cuando llega la número 151, la más antigua desciende, se posa en la parte baja de la pared y <b>florece como cempasúchil</b> (una animación de 2 a 3 segundos). Su nombre se queda en la flor, más pequeño.</p>
+  <p>El campo de flores crece hacia arriba durante toda la exposición. Al principio la pared casi vacía tiene unas cuantas mariposas y una frase: <i>“Cuéntanos de quien extrañas.”</i> Al final, es una ofrenda completa. Ese crecimiento es el corazón visual del proyecto.</p>
+  <h2>Que nada se pierda</h2>
+  <p>El servidor guarda la lista completa en un archivo cada vez que llega una entrada, de forma segura aunque se vaya la luz a la mitad. Cada flor tiene siempre el mismo lugar: si algo se reinicia, la proyección se reconstruye exactamente igual.</p>
+</section>
+
+<!-- ======================= 05 ======================= -->
+<section style="page-break-inside: avoid">
+  <h1 class="seguido"><span class="num">05</span> La mariposa de cada hora</h1>
+  <div class="adorno">{{ADORNO}}</div>
+
+  <div class="memoria">
+    <p>Cada hora, en punto, nace sola una mariposa sin nombre, sin que nadie entre a la cabina.</p>
+    <p>En México, una persona muere por suicidio aproximadamente cada hora. El INEGI registró 8,837 en 2023: unas 24 cada día.</p>
+  </div>
+
+  <p>Esa mariposa <b>no es distinta</b> de ninguna otra. No tiene otro color, no aparece señalada en la pared, en el panel del equipo ni en los datos que se guardan. Vuela, baja y florece igual que todas.</p>
+  <p>Es una decisión de diseño. Esas muertes merecen el mismo trato, el mismo cariño y la misma compasión que cualquier otra. No queremos señalarlas ni separarlas: queremos que estén <b>integradas con las demás</b>, como debieron estarlo en vida.</p>
+
+  <p class="cita">Nadie la nombra, y aun así tiene su lugar en la ofrenda.</p>
+
+  <h2>Cómo se comunica</h2>
+  <ul>
+    <li>Solo el letrero de afuera la explica, con el mismo tono de cuidado.</li>
+    <li>El letrero incluye la <b>Línea de la Vida: 800 911 2000</b> (gratuita, las 24 horas). Confirmar el número antes de imprimir.</li>
+    <li>El anfitrión sabe de esta mariposa por si alguien pregunta, y está atento a quien salga afectado.</li>
+  </ul>
+  <p class="nota">Detalle técnico: el servidor la crea a la hora en punto con rasgos al azar dentro de los mismos rangos que una historia normal. Para ensayarla sin esperar una hora: <code>--memoria-minutos 1</code>.</p>
+
+  <div class="centro" style="margin-top:16pt">{{FLOR46}}{{MARIPOSA}}{{FLOR46}}</div>
+</section>
+
+<!-- ======================= 06 ======================= -->
+<section class="seccion">
+  <h1><span class="num">06</span> Privacidad y cuidado</h1>
+  <div class="adorno">{{ADORNO}}</div>
+  <p>Este proyecto toca el duelo de personas reales. El cuidado no es un extra: es parte del diseño.</p>
+  <h2>Lo que el sistema nunca hace</h2>
+  <ul>
+    <li><b>No graba audio.</b> El micrófono solo mide el volumen en ese instante y lo descarta.</li>
+    <li><b>No transcribe ni guarda las historias.</b> Nadie, ni el equipo, puede saber qué se dijo.</li>
+    <li><b>No obliga a dar ningún nombre.</b></li>
+    <li><b>No muestra nunca un mensaje de “rechazado”.</b> Si un nombre no pasa el filtro, la mariposa vuela igual, sin nombre.</li>
+    <li><b>No apura a nadie.</b> El silencio también cuenta; la cabina solo termina sola después de 3 minutos sin voz.</li>
+  </ul>
+  <h2>Lo que el equipo hace</h2>
+  <ul>
+    <li>Un letrero afuera de la cabina explica la experiencia, dice claramente que nada se guarda, explica la mariposa de cada hora e incluye la Línea de la Vida.</li>
+    <li>Siempre hay un integrante del equipo cerca (no dentro) de la cabina. Algunas personas van a llorar; nadie debe salir sin que alguien lo note.</li>
+    <li>El panel de moderación está protegido con clave y solo lo usa el equipo.</li>
+    <li>Al cerrar la exposición, el equipo decide si el archivo de nombres se borra o se conserva solo para documentar el proyecto.</li>
+  </ul>
+
+  <h1 class="seguido"><span class="num">07</span> Filtro anti-spam</h1>
+  <div class="adorno">{{ADORNO}}</div>
+  <p>Algunas personas van a escribir groserías, memes o nombres de compañeros como broma. El filtro trabaja en capas, y su regla principal es que <b>falla en silencio</b>: un nombre bloqueado se convierte en una mariposa sin nombre.</p>
+  <table>
+    <tr><th>Capa</th><th>Qué hace</th></tr>
+    <tr><td class="capa">FORMA</td><td>De 2 a 40 caracteres; solo letras (incluye ñ y acentos), espacios, apóstrofes y guiones; máximo 6 palabras; sin números ni enlaces.</td></tr>
+    <tr><td class="capa">LISTA DE PALABRAS</td><td>Antes de comparar, normaliza: minúsculas, sin acentos, deshace el “leetspeak” (4→a, 0→o, 3→e…), junta letras repetidas y letras separadas por espacios. Compara palabras completas para no bloquear apellidos reales. La lista es un archivo de texto que el equipo puede editar.</td></tr>
+    <tr><td class="capa">RITMO</td><td>Espera de unos 15 segundos entre una persona y otra. El mismo nombre más de 2 veces en 10 minutos ya no se muestra.</td></tr>
+    <tr><td class="capa">PERSONA</td><td>El panel en el celular de un integrante permite quitar cualquier nombre que el filtro no detecte y pausar la cabina.</td></tr>
+  </table>
+</section>
+
+<!-- ======================= 08 ======================= -->
+<section class="seccion">
+  <h1><span class="num">08</span> El micrófono y las voces</h1>
+  <div class="adorno">{{ADORNO}}</div>
+  <h2>Sensibilidad y calibración</h2>
+  <p>Cada micrófono da niveles muy distintos: en las pruebas, uno de laptop no pasaba de 0.008 aunque alguien hablara cerca. Por eso la cabina se ajusta sola:</p>
+  <ul>
+    <li><b>Calibración automática:</b> la primera vez, la cabina mide 3 segundos de silencio y pone el punto donde empieza a “escuchar” en 4 veces el ruido de fondo.</li>
+    <li><b>Control de sensibilidad</b> de 0 a 100, en la cabina (tecla F2) y en el panel del celular: a la derecha capta voces más bajitas.</li>
+    <li><b>Recalibrar en el lugar real:</b> tecla F3 en la cabina o botón “Calibrar” en el panel, con la cabina vacía y callada.</li>
+    <li>La cabina y el panel avisan si el micrófono tiene un problema (sin permiso, sin señal o con el audio en pausa).</li>
+  </ul>
+  <table>
+    <tr><th>Tecla</th><th>Qué hace en la cabina</th></tr>
+    <tr><td class="capa">ENTER</td><td>Es “el botón”. El botón arcade (encoder USB) se configura para mandar Enter.</td></tr>
+    <tr><td class="capa">F2</td><td>Muestra la depuración: estado, nivel del micrófono, conexión, la voz que tocó y el control de sensibilidad.</td></tr>
+    <tr><td class="capa">F3</td><td>Calibra el micrófono (3 segundos de silencio).</td></tr>
+  </table>
+
+  <h2>Varias voces para las instrucciones</h2>
+  <p>Para que la voz no suene siempre igual, cada integrante graba su propia versión de las tres instrucciones (con Audacity o con las notas de voz del celular). Cada quien tiene una carpeta:</p>
+  <div class="caja carpetas">audio/ana/    bienvenida.mp3   nombre.mp3   salida.mp3
+audio/beto/   bienvenida.m4a   nombre.m4a   salida.m4a
+audio/sol/    …</div>
+  <ul>
+    <li>A cada persona que entra le toca <b>una voz al azar</b>, la misma en las tres instrucciones, y nunca la misma que a la persona anterior.</li>
+    <li>Si a una voz le falta una grabación, ese clip se toma de otra voz. Sin grabaciones, se usa la voz sintética del navegador.</li>
+    <li>Se pueden agregar voces con todo funcionando: se usan desde la siguiente visita.</li>
+  </ul>
+</section>
+
+<!-- ======================= 09 ======================= -->
+<section class="seccion">
+  <h1><span class="num">09</span> Lo que necesitamos</h1>
+  <div class="adorno">{{ADORNO}}</div>
+  <p>Prioridad: <span class="tag ind">INDISPENSABLE</span> sin esto no hay proyecto · <span class="tag imp">IMPORTANTE</span> mejora mucho la experiencia · <span class="tag ext">EXTRA</span> si sobra tiempo.</p>
+  <table>
+    <tr><th style="width:4%"></th><th style="width:38%">Elemento</th><th>Notas</th><th style="width:17%">Prioridad</th></tr>
+    <tr class="grupo"><td colspan="4">CÓMPUTO Y ELECTRÓNICA</td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Computadora moderna (laptop o mini PC)</td><td>Con Chrome o Edge. Si es Opción A, con dos salidas de video.</td><td><span class="tag ind">INDISPENSABLE</span></td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Proyector</td><td>Idealmente 2,500 lúmenes o más.</td><td><span class="tag ind">INDISPENSABLE</span></td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Micrófono USB o de solapa</td><td>De preferencia direccional (cardioide) para no captar el ruido de afuera.</td><td><span class="tag ind">INDISPENSABLE</span></td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Pantalla para la cabina</td><td>Monitor pequeño o la misma laptop, escondida.</td><td><span class="tag ind">INDISPENSABLE</span></td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Teclado</td><td>Viejo de preferencia. Si es PS/2, conseguir adaptador a USB.</td><td><span class="tag ind">INDISPENSABLE</span></td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Botón grande tipo arcade + encoder USB</td><td>Configurado para mandar la tecla Enter. Alternativa: la tecla Enter marcada.</td><td><span class="tag imp">IMPORTANTE</span></td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Bocina pequeña</td><td>Para las instrucciones de voz.</td><td><span class="tag imp">IMPORTANTE</span></td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Cable HDMI largo (10 m) o segundo equipo + router</td><td>Según la distancia entre cabina y proyección.</td><td><span class="tag ind">INDISPENSABLE</span></td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Extensiones y multicontacto, cinta</td><td>Para fijar y ocultar cables.</td><td><span class="tag ind">INDISPENSABLE</span></td></tr>
+    <tr class="grupo"><td colspan="4">LA COMPUTADORA VIEJA</td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Gabinete y monitor CRT beige (solo carcasa)</td><td>Tianguis, chatarra, talleres de reparación. Se vacían por dentro.</td><td><span class="tag imp">IMPORTANTE</span></td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Montaje de la pantalla detrás del vidrio del CRT</td><td>Si el CRT no se puede vaciar, la pantalla va al frente con un marco.</td><td><span class="tag ext">EXTRA</span></td></tr>
+    <tr class="grupo"><td colspan="4">CABINA Y AMBIENTACIÓN</td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Estructura de la cabina</td><td>Mampara, tubos de PVC o un rincón cerrado con tela.</td><td><span class="tag ind">INDISPENSABLE</span></td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Telas negras y moradas</td><td>Para cerrar la cabina y oscurecer el espacio.</td><td><span class="tag ind">INDISPENSABLE</span></td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Silla o banco, mesa pequeña</td><td>Para la computadora y para sentarse a contar.</td><td><span class="tag ind">INDISPENSABLE</span></td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Papel picado, cempasúchil, velas LED</td><td>Velas LED, no de fuego, por seguridad con telas y cables.</td><td><span class="tag imp">IMPORTANTE</span></td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Pared clara o manta blanca para proyectar</td><td>En un espacio lo más oscuro posible.</td><td><span class="tag ind">INDISPENSABLE</span></td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Letrero explicativo afuera</td><td>Qué es, cómo funciona, que nada se guarda, la mariposa de cada hora y la Línea de la Vida.</td><td><span class="tag ind">INDISPENSABLE</span></td></tr>
+    <tr class="grupo"><td colspan="4">SOFTWARE (TODO GRATUITO)</td></tr>
+    <tr><td><span class="tag ok">✓</span></td><td>El sistema completo</td><td>Ya funciona: github.com/kotongit/Nowan_Xichoka (licencia MIT).</td><td><span class="tag ok">LISTO</span></td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Chrome o Edge</td><td>Los lanzadores los abren en modo kiosco.</td><td><span class="tag ind">INDISPENSABLE</span></td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Python 3.10 o más nuevo</td><td>Se instala una vez con internet (<code>instalar.bat</code>); el día de la exposición no hace falta internet.</td><td><span class="tag ind">INDISPENSABLE</span></td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Grabaciones de voz del equipo</td><td>Audacity o notas de voz del celular. Una carpeta por persona.</td><td><span class="tag imp">IMPORTANTE</span></td></tr>
+  </table>
+
+  <h2>Roles del equipo</h2>
+  <table class="roles">
+    <tr><th style="width:24%">Rol</th><th>Responsabilidad</th><th>Integrante</th></tr>
+    <tr><td><b>Proyección</b></td><td>Mariposas, vuelo, aterrizaje, floración, campo de cempasúchil. Probar el proyector en el lugar real.</td><td>____________</td></tr>
+    <tr><td><b>Cabina</b></td><td>Micrófono, calibración, renglones, flujo de botón y nombre. Coordinar las grabaciones de voz.</td><td>____________</td></tr>
+    <tr><td><b>Servidor y filtro</b></td><td>Servidor, guardado en JSON, filtro anti-spam y su lista de palabras, panel de moderación.</td><td>____________</td></tr>
+    <tr><td><b>Construcción y ambientación</b></td><td>Cabina, computadora vieja, ofrenda, iluminación, letrero.</td><td>____________</td></tr>
+    <tr><td><b>Anfitrión</b> (el día de la exposición)</td><td>Recibir a las personas, explicar, acompañar, vigilar el panel.</td><td>Turnos</td></tr>
+  </table>
+</section>
+
+<!-- ======================= 10 ======================= -->
+<section class="seccion">
+  <h1><span class="num">10</span> Plan de trabajo</h1>
+  <div class="adorno">{{ADORNO}}</div>
+  <p>El sistema ya está completo. Lo que falta es llevarlo al mundo real: hardware, voces, letrero y la ofrenda.</p>
+  <div class="tiempo">
+    <div class="hito hecho"><div class="cuando">MIÉ 21 OCT · SISTEMA COMPLETO ✓</div>
+      Proyección, cabina, servidor, panel de moderación, filtro, calibración del micrófono, varias voces y la mariposa de cada hora. Probado de principio a fin. Código en GitHub.</div>
+    <div class="hito"><div class="cuando">JUE 22 – SÁB 24 OCT · HARDWARE Y VOCES</div>
+      Asignar roles. Conseguir proyector, micrófono, botón y carcasa vieja. Probar en la computadora final (instalar, calibrar el micrófono, ajustar la posición del proyector). Cada integrante graba sus tres instrucciones.</div>
+    <div class="hito"><div class="cuando">DOM 25 – LUN 26 OCT · PRUEBA COMPLETA</div>
+      Recorrido completo con alguien que no sea del equipo. Escribir e imprimir el letrero. Revisar la lista de palabras bloqueadas.</div>
+    <div class="hito clave"><div class="cuando">MAR 27 OCT · EXPOSICIÓN DEL PROYECTO</div>
+      Presentar el concepto y una demostración funcional.</div>
+    <div class="hito"><div class="cuando">MIÉ 28 – JUE 29 OCT · MONTAJE</div>
+      Construir la cabina, vestir la computadora vieja, armar la ofrenda, pruebas en el lugar real (luz, ruido, distancia al proyector). Recalibrar el micrófono ahí.</div>
+    <div class="hito clave"><div class="cuando">VIE 30 OCT · PRESENTACIÓN FINAL</div>
+      Nowan Xichoka abierto al público.</div>
+  </div>
+
+  <h1 class="seguido"><span class="num">11</span> Riesgos y plan B</h1>
+  <div class="adorno">{{ADORNO}}</div>
+  <table>
+    <tr><th style="width:36%">Riesgo</th><th>Plan</th></tr>
+    <tr><td>El micrófono no capta la voz</td><td>Subir la sensibilidad (F2 o el panel) o recalibrar. F2 y el panel dicen si hay un problema de permiso o de señal.</td></tr>
+    <tr><td>El micrófono capta el ruido de afuera</td><td>Micrófono direccional, cabina con tela gruesa, recalibrar en el lugar y bajar la sensibilidad desde el panel en el momento.</td></tr>
+    <tr><td>El navegador no deja usar el micrófono</td><td>Abrir la cabina siempre desde <code>localhost</code>; los lanzadores dan el permiso solos.</td></tr>
+    <tr><td>Algo se traba o se reinicia</td><td>Todo se reconstruye desde el JSON. Volver a abrir todo con un doble clic en el lanzador.</td></tr>
+    <tr><td>Se cae la red entre pantallas</td><td>Se reconectan solas y ninguna mariposa se pierde: la cabina las guarda y las manda al volver.</td></tr>
+    <tr><td>El proyector se ve deslavado</td><td>Oscurecer el espacio. La proyección ya usa fondo negro puro.</td></tr>
+    <tr><td>Alguien intenta saturar la proyección</td><td>Tiempo de espera entre personas y botón de pausa en el panel.</td></tr>
+    <tr><td>Una persona se quiebra emocionalmente</td><td>Anfitrión cerca de la cabina en todo momento, sin interrumpir. Línea de la Vida en el letrero.</td></tr>
+    <tr><td>No alcanza el tiempo</td><td>El software ya está listo. Lo indispensable del montaje: proyección + cabina con micrófono + botón. Voces grabadas y carcasa vieja pueden simplificarse.</td></tr>
+  </table>
+
+  <h2>Pendientes por definir</h2>
+  <ul>
+    <li>Lugar exacto de la exposición y si tiene un espacio oscuro con pared clara.</li>
+    <li>Si conseguimos proyector propio o lo presta la escuela.</li>
+    <li>Integrantes, asignación de roles y quién graba voz.</li>
+    <li>Texto final del letrero.</li>
+    <li>Qué se hace con los nombres al terminar la exposición.</li>
+  </ul>
+
+  <div class="centro" style="margin-top:12pt">{{ADORNO}}</div>
+  <p class="cita">Nowan xichoka. Llora conmigo.<br>Y después, mira cómo vuela.</p>
+  <div class="centro">{{FLOR46}}{{MARIPOSA}}{{FLOR46}}</div>
+</section>
+</body>
+</html>
