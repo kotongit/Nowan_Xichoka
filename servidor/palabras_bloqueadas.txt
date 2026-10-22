@@ -1,0 +1,93 @@
+# Palabras bloqueadas (una por línea). Lo que va después de # se ignora.
+# Se comparan PALABRAS COMPLETAS ya normalizadas (minúsculas, sin acentos,
+# sin leetspeak, sin letras repetidas), así que no hace falta escribir
+# variantes como "pvt0" o "puuuto". Sí hay que escribir plurales y femeninos.
+#
+# Cuidado con agregar palabras que también son apellidos o apodos reales
+# (por ejemplo "Concha", "Pito" como apodo, etc.): bloquearían a alguien de verdad.
+
+puto
+puta
+putos
+putas
+putazo
+verga
+vergas
+pendejo
+pendeja
+pendejos
+pendejas
+cabron
+cabrona
+cabrones
+culero
+culera
+culeros
+culo
+culos
+chingada
+chingado
+chingar
+chinga
+chingon
+chingona
+pinche
+pinches
+mamon
+mamona
+mamada
+mierda
+joto
+jotos
+maricon
+marica
+puñal
+zorra
+perra
+nalgas
+pene
+panocha
+pucha
+ojete
+huevon
+guey   # se usa como insulto en los nombres de broma
+wey
+idiota
+estupido
+estupida
+imbecil
+tarado
+naco
+
+# Inglés
+fuck
+fucker
+shit
+bitch
+dick
+cock
+pussy
+nigga
+nigger
+fag
+faggot
+cunt
+ass
+asshole
+
+# Memes y bromas
+xd
+lol
+lmao
+sus
+amogus
+skibidi
+rizz
+gyatt
+sigma
+hitler
+nazi
+yo
+nadie
+test
+prueba

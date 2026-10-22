@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "nowan",
+      "runtimeExecutable": ".venv/bin/python",
+      "runtimeArgs": ["servidor/servidor.py", "--prueba", "--clave", "1234", "--datos", "datos/ensayo.json"],
+      "port": 8000
+    }
+  ]
+}

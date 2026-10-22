@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#120c08">
+  <title>Nowan Xichoka · Panel</title>
+  <style>
+    :root {
+      --fondo: #120c08; --tarjeta: #1d140e; --linea: #3a2a1d;
+      --texto: #f6e7d4; --tenue: #a8907a; --ambar: #ffb547; --rojo: #e2553f; --verde: #6fcf7a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 16px 16px 48px; background: var(--fondo); color: var(--texto);
+      font: 16px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+      max-width: 560px; margin-inline: auto;
+    }
+    h1 { font-size: 18px; margin: 4px 0 12px; font-weight: 600; letter-spacing: .02em; }
+    h1 small { color: var(--tenue); font-weight: 400; }
+    h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--tenue); margin: 0 0 10px; font-weight: 600; }
+    .tarjeta { background: var(--tarjeta); border: 1px solid var(--linea); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+    .fila { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; padding: 4px 10px; border-radius: 99px; background: #0004; }
+    .chip i { width: 9px; height: 9px; border-radius: 50%; background: var(--rojo); }
+    .chip.ok i { background: var(--verde); }
+    .numeros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
+    .numeros b { display: block; font-size: 26px; font-variant-numeric: tabular-nums; }
+    .numeros span { font-size: 12px; color: var(--tenue); }
+    button {
+      font: inherit; color: inherit; background: #2b1f16; border: 1px solid var(--linea);
+      border-radius: 10px; padding: 10px 14px; min-height: 44px; cursor: pointer;
+    }
+    button:active { transform: scale(.98); }
+    #pausa { width: 100%; font-size: 18px; font-weight: 600; min-height: 56px; }
+    #pausa.pausada { background: var(--rojo); border-color: var(--rojo); color: #fff; }
+    .barra { position: relative; height: 14px; background: #0006; border-radius: 7px; overflow: hidden; margin: 6px 0 10px; }
+    .barra i { position: absolute; inset: 0 auto 0 0; background: var(--ambar); transition: width .15s; }
+    .barra i.hablando { background: var(--verde); }
+    .barra b { position: absolute; top: 0; bottom: 0; width: 3px; background: var(--rojo); }
+    input[type=range] { flex: 1; accent-color: var(--ambar); min-width: 0; }
+    .nota { font-size: 13px; color: var(--tenue); margin: 6px 0 0; }
+    ul { list-style: none; margin: 0; padding: 0; }
+    li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--linea); }
+    li:first-child { border-top: 0; }
+    li .que { flex: 1; min-width: 0; }
+    li .nombre { overflow-wrap: anywhere; }
+    li .sin { color: var(--tenue); font-style: italic; }
+    li .cuando { font-size: 12px; color: var(--tenue); font-variant-numeric: tabular-nums; }
+    li button { font-size: 14px; padding: 8px 10px; min-height: 40px; white-space: nowrap; }
+    li button.confirmar { background: var(--rojo); border-color: var(--rojo); color: #fff; }
+    #acceso { display: none; }
+    #acceso input { font: inherit; padding: 10px; border-radius: 10px; border: 1px solid var(--linea); background: #0006; color: inherit; width: 8em; }
+    .oculto { display: none !important; }
+  </style>
+</head>
+<body>
+  <h1>Nowan Xichoka <small>· panel</small></h1>
+
+  <section id="acceso" class="tarjeta">
+    <h2>Clave</h2>
+    <p class="nota" style="margin-top:0">Es el número que aparece en la ventana del servidor.</p>
+    <form class="fila" id="formaClave">
+      <input id="clave" inputmode="numeric" autocomplete="off">
+      <button>Entrar</button>
+    </form>
+  </section>
+
+  <main id="contenido" class="oculto">
+    <section class="tarjeta fila">
+      <span class="chip" id="chipServidor"><i></i>Servidor</span>
+      <span class="chip" id="chipCabina"><i></i>Cabina</span>
+      <span class="chip" id="chipProyeccion"><i></i>Proyección</span>
+    </section>
+
+    <section class="tarjeta numeros">
+      <div><b id="total">0</b><span>historias</span></div>
+      <div><b id="volando">0</b><span>volando</span></div>
+      <div><b id="flores">0</b><span>flores</span></div>
+    </section>
+
+    <section class="tarjeta">
+      <button id="pausa">Pausar cabina</button>
+      <p class="nota">En pausa, la cabina no deja empezar una historia nueva. Quien ya está adentro termina normal.</p>
+    </section>
+
+    <section class="tarjeta">
+      <h2>Micrófono</h2>
+      <div class="barra"><i id="nivel"></i><b id="marca"></b></div>
+      <div class="fila">
+        <button id="menos" aria-label="Bajar umbral">−</button>
+        <input type="range" id="umbral" min="0" max="1000" step="1">
+        <button id="mas" aria-label="Subir umbral">+</button>
+      </div>
+      <p class="nota">La línea roja es el umbral. Con la cabina en silencio, la barra debe quedar <b>abajo</b> de la línea; al hablar, <b>arriba</b> (se pone verde). Si capta el ruido de afuera, sube el umbral. <span id="umbralTexto"></span></p>
+    </section>
+
+    <section class="tarjeta oculto" id="prueba">
+      <h2>Modo prueba</h2>
+      <div class="fila">
+        <button data-cantidad="1">+1 mariposa</button>
+        <button data-cantidad="20">+20</button>
+        <button data-cantidad="160">+160</button>
+      </div>
+      <p class="nota">Solo aparece si el servidor se abrió con --prueba.</p>
+    </section>
+
+    <section class="tarjeta">
+      <h2>Recientes</h2>
+      <ul id="lista"></ul>
+      <p class="nota">“Quitar nombre” deja la mariposa volando, pero sin nombre. Hay que tocarlo dos veces.</p>
+    </section>
+  </main>
+
+  <script type="module" src="panel.js"></script>
+</body>
+</html>

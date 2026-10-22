@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nowan Xichoka · Proyección</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; cursor: none; }
+    canvas { display: block; width: 100vw; height: 100vh; }
+    #estado {
+      position: fixed; right: 10px; top: 10px; width: 8px; height: 8px; border-radius: 50%;
+      background: #b33; opacity: 0; transition: opacity .5s;
+    }
+    #estado.desconectado { opacity: .7; }
+  </style>
+</head>
+<body>
+  <canvas id="pared"></canvas>
+  <div id="estado" title="Sin conexión con el servidor"></div>
+  <script type="module" src="proyeccion.js"></script>
+</body>
+</html>

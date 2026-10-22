@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nowan Xichoka · Cabina</title>
+  <style>
+    :root {
+      --ambar: #ffb547;
+      --ambar-tenue: #b9772a;
+      --fondo: #0b0704;
+    }
+    html, body {
+      margin: 0; height: 100%; overflow: hidden; cursor: none;
+      background: var(--fondo); color: var(--ambar);
+      font-family: "Lucida Console", "Courier New", ui-monospace, monospace;
+      user-select: none;
+    }
+    canvas#carta {
+      position: fixed; inset: 0; width: 100vw; height: 100vh;
+      filter: blur(1.8px);
+      transition: filter 3s ease-in;
+    }
+    canvas#carta.humo { filter: blur(9px); }
+    canvas#carta.nitido { filter: blur(0); transition: filter .4s; }
+
+    /* Aspecto de monitor viejo: líneas de barrido y viñeta */
+    .crt {
+      position: fixed; inset: 0; pointer-events: none; z-index: 5;
+      background:
+        radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.75) 100%),
+        repeating-linear-gradient(to bottom, rgba(0,0,0,.22) 0 1px, transparent 1px 3px);
+    }
+
+    .texto {
+      position: fixed; left: 8vw; right: 8vw; z-index: 3;
+      text-align: center; text-shadow: 0 0 10px rgba(255,170,60,.55);
+      opacity: 0; transition: opacity 1.2s;
+    }
+    .texto.visible { opacity: 1; }
+    #mensaje { top: 50%; transform: translateY(-50%); font-size: clamp(20px, 3.4vh, 40px); line-height: 1.6; }
+    #mensaje.arriba { top: 7vh; transform: none; font-size: clamp(16px, 2.4vh, 28px); color: var(--ambar-tenue); }
+    #pie { bottom: 6vh; font-size: clamp(14px, 2vh, 22px); color: var(--ambar-tenue); }
+
+    #firma {
+      position: fixed; left: 10vw; right: 10vw; top: 50%; z-index: 3;
+      font-size: clamp(20px, 3.4vh, 40px); text-shadow: 0 0 10px rgba(255,170,60,.55);
+      opacity: 0; transition: opacity 1s; white-space: pre-wrap; word-break: break-word;
+    }
+    #firma.visible { opacity: 1; }
+    #cursor { animation: parpadeo 1s steps(1) infinite; }
+    @keyframes parpadeo { 50% { opacity: 0; } }
+
+    #entradaNombre { position: fixed; left: -9999px; opacity: 0; }
+
+    #depurar {
+      position: fixed; left: 10px; bottom: 10px; z-index: 9; display: none;
+      font: 12px monospace; color: #9f9; background: rgba(0,0,0,.8); padding: 8px 10px; white-space: pre;
+    }
+    #depurar.visible { display: block; }
+    #nivelBarra { position: relative; width: 240px; height: 8px; background: #222; margin-top: 6px; }
+    #nivelBarra i { position: absolute; left: 0; top: 0; bottom: 0; background: #9f9; }
+    #nivelBarra b { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #f55; }
+  </style>
+</head>
+<body>
+  <canvas id="carta"></canvas>
+  <div id="mensaje" class="texto"></div>
+  <div id="firma"><span>&gt; Si quieres, escribe su nombre: </span><span id="nombreEscrito"></span><span id="cursor">_</span></div>
+  <div id="pie" class="texto"></div>
+  <input id="entradaNombre" maxlength="40" autocomplete="off" spellcheck="false">
+  <div class="crt"></div>
+  <div id="depurar"><span id="depurarTexto"></span><div id="nivelBarra"><i></i><b></b></div></div>
+  <script type="module" src="cabina.js"></script>
+</body>
+</html>
