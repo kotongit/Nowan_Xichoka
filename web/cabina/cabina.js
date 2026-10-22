@@ -17,7 +17,7 @@ import { conectar } from "../comun/conexion.js";
 import { aspecto, crearAlas, dibujarBrillo, dibujarMariposa, limitar, mezclar } from "../comun/mariposa.js";
 import { enBarra, sensibilidad, umbralDe } from "../comun/sensibilidad.js";
 import { Microfono, MicrofonoSimulado } from "./microfono.js";
-import { callar, decir, TEXTOS } from "./voz.js";
+import { callar, decir, elegirVoz, TEXTOS, vozElegida } from "./voz.js";
 
 const ATAQUE = 0.12;            // s de voz continua para empezar una línea
 const SOLTAR = 0.7;             // s de silencio para terminar una línea
@@ -145,6 +145,7 @@ function ir(nuevo) {
 
   else if (nuevo === "bienvenida") {
     mic.reanudar();
+    elegirVoz(); // una voz del equipo al azar, la misma para toda la visita
     ocultar(pie);
     mostrar(mensaje, TEXTOS.bienvenida.replace("Cuéntanos", "<br>Cuéntanos").replace("Nada", "<br>Nada").replace("Cuando", "<br><br>Cuando"));
     decir("bienvenida").then(() => sigue() && ir("escuchando"));
@@ -535,7 +536,7 @@ function actualizarDepuracion() {
     `servidor: ${conectado ? "conectado" : "SIN CONEXIÓN"}  ·  pausa: ${pausada ? "sí" : "no"}\n` +
     `micrófono: ${estadoMic()}  ·  audio: ${mic.audio}\n` +
     `nivel: ${nivel.toFixed(4)}  umbral: ${umbral.toFixed(4)}  ${sesion?.actual ? "● hablando" : ""}\n` +
-    `líneas: ${sesion?.lineas ?? 0}`;
+    `líneas: ${sesion?.lineas ?? 0}  ·  voz: ${vozElegida()}`;
   panel.querySelector("#nivelBarra i").style.width = `${enBarra(nivel)}%`;
   panel.querySelector("#nivelBarra b").style.left = `${enBarra(umbral)}%`;
   if (document.activeElement !== controlSensibilidad) controlSensibilidad.value = sensibilidad(umbral);

@@ -27,7 +27,7 @@ cabina (navegador)  ──WebSocket──►  servidor (Python)  ──WebSocket
 | `servidor/filtro.py` | Filtro anti-spam (forma, groserías, repeticiones) | Servidor y filtro |
 | `servidor/palabras_bloqueadas.txt` | Lista de palabras bloqueadas (se puede editar) | Servidor y filtro |
 | `web/panel/` | Panel de moderación para el celular | Servidor y filtro |
-| `audio/` | Instrucciones de voz grabadas (ver abajo) | Construcción |
+| `audio/` | Instrucciones de voz grabadas, una carpeta por voz (ver abajo) | Construcción |
 | `datos/` | Aquí se guarda `mariposas.json` | — |
 
 Todo corre en red local. **No necesita internet** el día de la exposición (solo para instalar).
@@ -108,24 +108,41 @@ mediana del ruido de fondo). Después se guarda en `datos/ajustes.json`. Para re
 Si F2 dice “audio en pausa”, presionen cualquier tecla; si dice “sin señal”, revisen qué
 micrófono está elegido en el sistema.
 
-### Instrucciones de voz
+### Instrucciones de voz (varias voces)
 
-Graben (Audacity) tres archivos MP3 y pónganlos en `audio/` con estos nombres exactos:
+Cada integrante puede grabar su versión de las instrucciones, para que la voz no suene
+siempre igual. Cada quien tiene una carpeta dentro de `audio/` con tres archivos:
+
+```
+audio/
+  ana/    bienvenida.mp3   nombre.mp3   salida.mp3
+  beto/   bienvenida.mp3   nombre.mp3   salida.mp3
+  sol/    ...
+```
 
 | Archivo | Texto |
 |---|---|
-| `audio/bienvenida.mp3` | “Este es un espacio para recordar. Cuéntanos de quien extrañas. Nada de lo que digas se guarda. Cuando termines, presiona el botón.” |
-| `audio/nombre.mp3` | “Si quieres, escribe su nombre. Si no, presiona el botón.” |
-| `audio/salida.mp3` | “Su mariposa ya vuela. Sal a buscarla.” |
+| `bienvenida` | “Este es un espacio para recordar. Cuéntanos de quien extrañas. Nada de lo que digas se guarda. Cuando termines, presiona el botón.” |
+| `nombre` | “Si quieres, escribe su nombre. Si no, presiona el botón.” |
+| `salida` | “Su mariposa ya vuela. Sal a buscarla.” |
 
-Mientras no existan, la cabina usa la voz sintética del navegador como respaldo.
+- A cada persona que entra le toca **una voz al azar**, la misma en las tres instrucciones
+  (nunca la misma que a la persona anterior, si hay más de una).
+- Formatos: `.mp3`, `.m4a` (notas de voz del iPhone), `.wav`, `.ogg`, `.webm`.
+- Si a una voz le falta un archivo, ese clip se toma de otra voz. Sin grabaciones, la cabina
+  usa la voz sintética del navegador.
+- Se pueden agregar voces con todo funcionando: se toman en la siguiente visita.
+- F2 muestra qué voz le tocó a la visita actual.
+- Ojo: el repositorio es público. Si alguien no quiere que su voz quede en GitHub, que pase
+  sus archivos por otro lado y no los suban con git.
 
 ### La mariposa de cada hora
 
 Cada hora en punto nace sola una mariposa **sin nombre**, sin que nadie entre a la cabina.
 En México muere aproximadamente una persona por suicidio cada hora (INEGI registró
-8,837 en 2023, unas 24 al día). Se ve igual que las demás mariposas sin nombre; en el
-JSON y en el panel va marcada como `"origen": "hora"`.
+8,837 en 2023, unas 24 al día). Es igual a cualquier otra mariposa sin nombre, a propósito y en
+todo: en la pared, en el panel y en el JSON no lleva ninguna marca. Se trata con el mismo
+cariño que cualquier historia, integrada con las demás.
 
 - Cambiar el intervalo: `servidor.py --memoria-minutos 60` (0 = desactivada).
 - Para ensayarla sin esperar una hora: `--memoria-minutos 1`.

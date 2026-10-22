@@ -94,15 +94,13 @@ class Estado:
     def guardar_ajustes(self):
         self._escribir(self.archivo_ajustes, {"umbral": self.umbral})
 
-    def nueva_entrada(self, nombre: str | None, rasgos: dict, origen: str | None = None) -> dict:
+    def nueva_entrada(self, nombre: str | None, rasgos: dict) -> dict:
         entrada = {
             "id": (self.entradas[-1]["id"] + 1) if self.entradas else 1,
             "nombre": self.filtro.revisar(nombre),
             "hora": datetime.now().isoformat(timespec="seconds"),
             "rasgos": limpiar_rasgos(rasgos),
         }
-        if origen:
-            entrada["origen"] = origen
         self.entradas.append(entrada)
         self.guardar()
         return entrada
@@ -157,14 +155,18 @@ async def mariposa_de_memoria():
     """
     Cada hora (en punto) nace una mariposa sin nombre, sola, sin que nadie
     entre a la cabina: en México muere una persona por suicidio
-    aproximadamente cada hora. Va marcada con "origen": "hora".
+    aproximadamente cada hora.
+
+    A propósito, no lleva ninguna marca: ni en la pared, ni en el panel, ni
+    en el JSON. Se trata igual que cualquier otra historia, con el mismo
+    cariño, integrada con las demás como debió estarlo en vida.
     """
     periodo = CONFIG["memoria_minutos"] * 60
     while True:
         await asyncio.sleep(periodo - (time.time() % periodo))
         rnd = random.Random(time.time())
         rasgos = {"duracion": rnd.randint(30, 200), "volumen": rnd.uniform(0.15, 0.5), "lineas": rnd.randint(3, 20)}
-        entrada = estado.nueva_entrada(None, rasgos, origen="hora")
+        entrada = estado.nueva_entrada(None, rasgos)
         await publicar(entrada)
 
 
@@ -319,6 +321,30 @@ async def sin_cache(request, call_next):
     respuesta = await call_next(request)
     respuesta.headers["Cache-Control"] = "no-store"
     return respuesta
+
+
+CLIPS = ("bienvenida", "nombre", "salida")
+FORMATOS = (".mp3", ".m4a", ".wav", ".ogg", ".webm")
+
+
+@app.get("/api/voces")
+async def voces():
+    """
+    Las grabaciones de las instrucciones. Cada integrante tiene su carpeta:
+        audio/ana/bienvenida.mp3, audio/ana/nombre.mp3, audio/ana/salida.mp3
+    Devuelve {"ana": {"bienvenida": "/audio/ana/bienvenida.mp3", ...}, ...}.
+    Archivos sueltos en audio/ (audio/bienvenida.mp3) cuentan como una voz más.
+    """
+    carpeta = RAIZ / "audio"
+    resultado = {}
+    for lugar in [carpeta, *sorted(p for p in carpeta.iterdir() if p.is_dir())]:
+        clips = {}
+        for archivo in lugar.iterdir():
+            if archivo.is_file() and archivo.stem in CLIPS and archivo.suffix.lower() in FORMATOS:
+                clips[archivo.stem] = "/" + archivo.relative_to(RAIZ).as_posix()
+        if clips:
+            resultado[lugar.name if lugar != carpeta else "_"] = clips
+    return resultado
 
 
 @app.get("/")

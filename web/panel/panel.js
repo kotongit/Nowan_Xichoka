@@ -107,13 +107,10 @@ function pintarLista() {
     que.className = "que";
     const nombre = document.createElement("div");
     nombre.className = e.nombre ? "nombre" : "nombre sin";
-    nombre.textContent = e.nombre ?? (e.origen === "hora" ? "sin nombre · la de cada hora" : "sin nombre");
-    if (e.origen === "hora") nombre.classList.add("hora-memoria");
+    nombre.textContent = e.nombre ?? "sin nombre";
     const cuando = document.createElement("div");
     cuando.className = "cuando";
-    cuando.textContent = e.origen === "hora"
-      ? `#${e.id} · ${hora(e.hora)}`
-      : `#${e.id} · ${hora(e.hora)} · ${e.rasgos.duracion} s · ${e.rasgos.lineas} líneas`;
+    cuando.textContent = `#${e.id} · ${hora(e.hora)} · ${e.rasgos.duracion} s · ${e.rasgos.lineas} líneas`;
     que.append(nombre, cuando);
     li.append(que);
     if (e.nombre) {

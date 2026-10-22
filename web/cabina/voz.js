@@ -1,7 +1,12 @@
 // Instrucciones de voz.
-// Si existe el archivo grabado en /audio (por ejemplo audio/bienvenida.mp3),
-// se reproduce ese. Si no, se usa la voz sintética del navegador como
-// respaldo, para poder probar antes de grabar las instrucciones reales.
+//
+// Cada integrante del equipo puede grabar su propia versión. Van en carpetas:
+//   audio/ana/bienvenida.mp3   audio/ana/nombre.mp3   audio/ana/salida.mp3
+//   audio/beto/bienvenida.mp3  ...
+// Para cada persona que entra se elige una voz al azar (elegirVoz), y esa
+// misma voz la acompaña en las tres instrucciones. Si a esa voz le falta un
+// clip, se usa el de otra voz; si no hay ninguna grabación, se usa la voz
+// sintética del navegador como respaldo.
 
 export const TEXTOS = {
   bienvenida: "Este es un espacio para recordar. Cuéntanos de quien extrañas. Nada de lo que digas se guarda. Cuando termines, presiona el botón.",
@@ -9,19 +14,45 @@ export const TEXTOS = {
   salida: "Su mariposa ya vuela. Sal a buscarla.",
 };
 
-const sinArchivo = new Set();
+let voces = {};          // { ana: { bienvenida: url, ... }, ... }
+let vozActual = null;
+let anterior = null;
 let actual = null;
 
-function reproducirArchivo(clave) {
+export async function cargarVoces() {
+  try {
+    voces = await (await fetch("/api/voces")).json();
+  } catch {
+    voces = {};
+  }
+  return Object.keys(voces);
+}
+cargarVoces();
+
+// Se llama al empezar cada visita. Evita repetir la voz de la persona anterior
+// cuando hay más de una.
+export function elegirVoz() {
+  cargarVoces(); // por si agregaron grabaciones sin reiniciar
+  const nombres = Object.keys(voces);
+  const opciones = nombres.length > 1 ? nombres.filter((n) => n !== anterior) : nombres;
+  vozActual = opciones.length ? opciones[Math.floor(Math.random() * opciones.length)] : null;
+  anterior = vozActual;
+  return vozActual;
+}
+
+function urlPara(clave) {
+  if (vozActual && voces[vozActual]?.[clave]) return voces[vozActual][clave];
+  const otras = Object.values(voces).filter((v) => v[clave]);
+  return otras.length ? otras[Math.floor(Math.random() * otras.length)][clave] : null;
+}
+
+function reproducir(url) {
   return new Promise((resolver, rechazar) => {
-    const audio = new Audio(`/audio/${clave}.mp3`);
+    const audio = new Audio(url);
     actual = audio;
     audio.onended = resolver;
     audio.onpause = resolver; // si se interrumpe con callar(), también termina
-    audio.onerror = () => {
-      sinArchivo.add(clave);
-      rechazar();
-    };
+    audio.onerror = rechazar;
     audio.play().catch(rechazar);
   });
 }
@@ -31,8 +62,8 @@ function vozDelNavegador(texto) {
     const respaldo = setTimeout(resolver, texto.length * 75 + 1500);
     if (!("speechSynthesis" in window)) return;
     const frase = new SpeechSynthesisUtterance(texto);
-    const voces = speechSynthesis.getVoices();
-    frase.voice = voces.find((v) => v.lang === "es-MX") || voces.find((v) => v.lang.startsWith("es")) || null;
+    const disponibles = speechSynthesis.getVoices();
+    frase.voice = disponibles.find((v) => v.lang === "es-MX") || disponibles.find((v) => v.lang.startsWith("es")) || null;
     frase.lang = "es-MX";
     frase.rate = 0.9;
     frase.onend = () => { clearTimeout(respaldo); resolver(); };
@@ -43,11 +74,12 @@ function vozDelNavegador(texto) {
 // Devuelve una promesa que se cumple cuando termina de hablar.
 export async function decir(clave) {
   callar();
-  if (!sinArchivo.has(clave)) {
+  const url = urlPara(clave);
+  if (url) {
     try {
-      await reproducirArchivo(clave);
+      await reproducir(url);
       return;
-    } catch { /* no hay archivo: se usa la voz del navegador */ }
+    } catch { /* archivo dañado o formato no soportado: voz del navegador */ }
   }
   await vozDelNavegador(TEXTOS[clave]);
 }
@@ -56,3 +88,6 @@ export function callar() {
   if (actual) { actual.pause(); actual = null; }
   if ("speechSynthesis" in window) speechSynthesis.cancel();
 }
+
+// Para F2: qué voz le tocó a esta visita.
+export const vozElegida = () => vozActual ?? "navegador";

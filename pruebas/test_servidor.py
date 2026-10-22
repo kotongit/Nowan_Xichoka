@@ -92,7 +92,8 @@ def test_mariposa_de_cada_hora(tmp_path, monkeypatch):
         recibir_hasta(proyeccion, "estado")
         entrada = recibir_hasta(proyeccion, "nueva")["entrada"]
     assert entrada["nombre"] is None
-    assert entrada["origen"] == "hora"
+    # Sin ninguna marca: es igual a cualquier otra entrada.
+    assert set(entrada) == {"id", "nombre", "hora", "rasgos"}
 
 
 def test_calibrar_desde_el_panel(cliente):
@@ -109,3 +110,22 @@ def test_calibrar_desde_el_panel(cliente):
     # Ya hay umbral guardado: la cabina no se vuelve a calibrar sola.
     with cliente.websocket_connect("/ws?rol=cabina") as cabina:
         assert recibir_hasta(cabina, "estado")["calibrado"] is True
+
+
+def test_voces_de_cada_integrante(cliente, tmp_path, monkeypatch):
+    audio = tmp_path / "audio"
+    (audio / "ana").mkdir(parents=True)
+    (audio / "beto").mkdir()
+    for clip in ["bienvenida", "nombre", "salida"]:
+        (audio / "ana" / f"{clip}.mp3").write_bytes(b"x")
+    (audio / "beto" / "bienvenida.m4a").write_bytes(b"x")
+    (audio / "beto" / "notas.txt").write_text("no es audio")
+    (audio / "salida.mp3").write_bytes(b"x")   # suelto en audio/: también cuenta
+    monkeypatch.setattr(servidor, "RAIZ", tmp_path)
+
+    voces = cliente.get("/api/voces").json()
+    assert voces == {
+        "_": {"salida": "/audio/salida.mp3"},
+        "ana": {c: f"/audio/ana/{c}.mp3" for c in ["bienvenida", "nombre", "salida"]},
+        "beto": {"bienvenida": "/audio/beto/bienvenida.m4a"},
+    }
