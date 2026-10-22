@@ -260,8 +260,8 @@ async def de_la_cabina(ws: WebSocket, mensaje: dict):
                                             "hablando": mensaje.get("hablando"),
                                             "mic": str(mensaje.get("mic", ""))[:40]})
 
-    elif tipo == "calibrado":
-        # La cabina midió el ruido de fondo y propone un umbral.
+    elif tipo in ("calibrado", "umbral"):
+        # La cabina midió el ruido de fondo, o alguien movió la sensibilidad en F2.
         await poner_umbral(mensaje.get("valor"))
 
 

@@ -6,6 +6,7 @@
 // El botón: Enter (el botón arcade se configura para mandar Enter).
 // También sirven la barra espaciadora (menos al escribir el nombre) y un clic.
 // F2 muestra el panel de depuración (nivel del micrófono, umbral, estado).
+//    Ahí mismo está el control de Sensibilidad (a la derecha = capta voces más bajitas).
 // F3 calibra el micrófono: mide 3 s de silencio y ajusta el umbral solo
 //    (también se puede desde el panel). Háganlo con la cabina vacía y callada.
 //
@@ -14,6 +15,7 @@
 
 import { conectar } from "../comun/conexion.js";
 import { aspecto, crearAlas, dibujarBrillo, dibujarMariposa, limitar, mezclar } from "../comun/mariposa.js";
+import { enBarra, sensibilidad, umbralDe } from "../comun/sensibilidad.js";
 import { Microfono, MicrofonoSimulado } from "./microfono.js";
 import { callar, decir, TEXTOS } from "./voz.js";
 
@@ -248,6 +250,14 @@ window.addEventListener("keydown", (e) => {
   if (estado === "nombre") ultimaTecla = reloj;
 });
 window.addEventListener("pointerdown", (e) => { e.preventDefault(); mic.reanudar(); boton(); });
+
+// Control de sensibilidad (dentro de F2). Los clics ahí no cuentan como botón.
+const controlSensibilidad = $("sensibilidad");
+$("depurar").addEventListener("pointerdown", (e) => e.stopPropagation());
+controlSensibilidad.addEventListener("input", () => {
+  umbral = umbralDe(+controlSensibilidad.value);
+  conexion.enviar({ tipo: "umbral", valor: +umbral.toFixed(4) });
+});
 entradaNombre.addEventListener("input", () => {
   nombreEscrito.textContent = entradaNombre.value;
   ultimaTecla = reloj;
@@ -526,9 +536,10 @@ function actualizarDepuracion() {
     `micrófono: ${estadoMic()}  ·  audio: ${mic.audio}\n` +
     `nivel: ${nivel.toFixed(4)}  umbral: ${umbral.toFixed(4)}  ${sesion?.actual ? "● hablando" : ""}\n` +
     `líneas: ${sesion?.lineas ?? 0}`;
-  const escala = (v) => `${limitar(v / (umbral * 4), 0, 1) * 100}%`;
-  panel.querySelector("#nivelBarra i").style.width = escala(nivel);
-  panel.querySelector("#nivelBarra b").style.left = escala(umbral);
+  panel.querySelector("#nivelBarra i").style.width = `${enBarra(nivel)}%`;
+  panel.querySelector("#nivelBarra b").style.left = `${enBarra(umbral)}%`;
+  if (document.activeElement !== controlSensibilidad) controlSensibilidad.value = sensibilidad(umbral);
+  $("sensibilidadValor").textContent = sensibilidad(umbral);
 }
 
 medir();

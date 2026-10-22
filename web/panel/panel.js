@@ -2,6 +2,7 @@
 // Se abre con la dirección que imprime el servidor: /panel/?clave=1234
 
 import { conectar } from "../comun/conexion.js";
+import { UMBRAL_MAX, UMBRAL_MIN, enBarra as posicion, sensibilidad, umbralDe } from "../comun/sensibilidad.js";
 
 const MAX_VUELO = 150;
 const MOSTRAR = 80;
@@ -11,11 +12,7 @@ let entradas = [];
 let umbral = 0.035;
 let conexion = null;
 
-// El umbral va de 0.002 a 0.3 en escala logarítmica (el control se siente parejo).
-const MIN = 0.002, MAX = 0.3;
-const aControl = (u) => Math.round((Math.log(u / MIN) / Math.log(MAX / MIN)) * 1000);
-const deControl = (v) => MIN * Math.pow(MAX / MIN, v / 1000);
-const enBarra = (u) => `${Math.min(100, (Math.log(Math.max(u, MIN) / MIN) / Math.log(MAX / MIN)) * 100)}%`;
+const enBarra = (nivel) => `${posicion(nivel)}%`;
 
 function iniciar(clave) {
   $("acceso").style.display = "none";
@@ -82,13 +79,13 @@ function ponerPausa(pausada) {
 
 function ponerUmbral(u) {
   umbral = u;
-  $("umbral").value = aControl(u);
+  $("umbral").value = sensibilidad(u);
   $("marca").style.left = enBarra(u);
-  $("umbralTexto").textContent = `(umbral: ${u.toFixed(4)})`;
+  $("umbralTexto").textContent = `(sensibilidad ${sensibilidad(u)} · umbral ${u.toFixed(4)})`;
 }
 
 function mandarUmbral(u) {
-  u = Math.min(MAX, Math.max(MIN, u));
+  u = Math.min(UMBRAL_MAX, Math.max(UMBRAL_MIN, u));
   ponerUmbral(u);
   conexion.enviar({ tipo: "umbral", valor: u });
 }
@@ -142,9 +139,9 @@ function pintarLista() {
 }
 
 $("pausa").onclick = () => conexion.enviar({ tipo: "pausar", valor: !$("pausa").dataset.pausada });
-$("umbral").oninput = (e) => mandarUmbral(deControl(+e.target.value));
-$("menos").onclick = () => mandarUmbral(umbral / 1.15);
-$("mas").onclick = () => mandarUmbral(umbral * 1.15);
+$("umbral").oninput = (e) => mandarUmbral(umbralDe(+e.target.value));
+$("menos").onclick = () => mandarUmbral(umbral * 1.15); // menos sensible = umbral más alto
+$("mas").onclick = () => mandarUmbral(umbral / 1.15);
 $("calibrar").onclick = () => conexion.enviar({ tipo: "calibrar" });
 for (const b of document.querySelectorAll("#prueba button")) {
   b.onclick = () => conexion.enviar({ tipo: "prueba", cantidad: +b.dataset.cantidad });

@@ -91,12 +91,12 @@
       <p class="nota" style="margin:0" id="micEstado">Cabina sin conectar</p>
       <div class="barra"><i id="nivel"></i><b id="marca"></b></div>
       <div class="fila">
-        <button id="menos" aria-label="Bajar umbral">−</button>
-        <input type="range" id="umbral" min="0" max="1000" step="1">
-        <button id="mas" aria-label="Subir umbral">+</button>
+        <button id="menos" aria-label="Menos sensible">−</button>
+        <input type="range" id="umbral" min="0" max="100" step="1" aria-label="Sensibilidad">
+        <button id="mas" aria-label="Más sensible">+</button>
       </div>
       <button id="calibrar" style="width:100%;margin-top:10px">Calibrar en silencio (3 s)</button>
-      <p class="nota">La línea roja es el umbral. Con la cabina en silencio, la barra debe quedar <b>abajo</b> de la línea; al hablar, <b>arriba</b> (se pone verde). Si capta el ruido de afuera, sube el umbral. <span id="umbralTexto"></span></p>
+      <p class="nota"><b>Sensibilidad:</b> a la derecha capta voces más bajitas. La línea roja es el punto donde empieza a “escuchar”. Con la cabina en silencio, la barra debe quedar <b>antes</b> de la línea; al hablar, <b>pasarla</b> (se pone verde). Si no dibuja nada, sube la sensibilidad; si dibuja con el ruido de afuera, bájala. <span id="umbralTexto"></span></p>
       <p class="nota"><b>Calibrar:</b> con la cabina vacía y callada, mide el ruido de fondo 3 segundos y pone el umbral solo.</p>
     </section>
 

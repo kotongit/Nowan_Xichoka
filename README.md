@@ -87,7 +87,7 @@ Y abrir `http://localhost:8000/` para ver todas las páginas.
 |---|---|
 | **Enter** | Es “el botón”. Configuren el botón arcade (encoder USB) para que mande **Enter**. |
 | Espacio / clic | También cuentan como botón (menos al escribir el nombre). |
-| **F2** | Muestra/oculta la depuración: estado, nivel del micrófono, umbral, conexión. |
+| **F2** | Muestra/oculta la depuración: estado, nivel del micrófono, conexión, y el control de **Sensibilidad** (con el mouse). |
 | **F3** | Calibra el micrófono (3 s de silencio). Háganlo con la cabina vacía y callada. |
 
 Flujo: flama → botón → instrucciones → la persona habla (renglones) → botón → los renglones
@@ -141,9 +141,9 @@ JSON y en el panel va marcada como `"origen": "hora"`.
 
 Desde ahí:
 - **Pausar cabina** — nadie nuevo puede empezar; quien está adentro termina normal.
-- **Micrófono** — estado (en rojo si hay un problema), barra en vivo, control del umbral y botón **Calibrar**. Con la cabina en silencio la barra debe
-  quedar *abajo* de la línea roja; al hablar, *arriba*. Si capta ruido de afuera, suban el umbral.
-  El umbral se guarda en `datos/ajustes.json`.
+- **Micrófono** — estado (en rojo si hay un problema), barra en vivo, control de **sensibilidad** (a la derecha capta voces más bajitas) y botón **Calibrar**. Con la cabina en silencio la barra debe
+  quedar *antes* de la línea roja; al hablar, *pasarla*. Si capta ruido de afuera, bajen la sensibilidad.
+  Se guarda en `datos/ajustes.json`. El mismo control está en la cabina (F2).
 - **Quitar nombre** — la mariposa (o flor) se queda, pero sin nombre. Se toca dos veces.
 
 La clave cambia cada vez que se abre el servidor (o fíjenla con `--clave 1234`).
@@ -203,8 +203,8 @@ Pruebas automáticas:
 |---|---|
 | Se trabó o se reinició algo | Cierren todo y vuelvan a abrir `iniciar`. Todo se reconstruye desde `datos/mariposas.json`. |
 | Punto rojo arriba a la derecha de la proyección | Perdió conexión con el servidor; se reconecta sola. Revisen que la ventana del servidor siga abierta. |
-| La cabina no dibuja renglones | Casi siempre es el umbral: **calibren** (F3 o el panel). Si F2 dice “error”, revisen que el micrófono esté conectado y elegido en el sistema. |
-| Dibuja renglones sin que nadie hable | Suban el umbral desde el panel. |
+| La cabina no dibuja renglones | Casi siempre es la sensibilidad: súbanla o **calibren** (F3 o el panel). Si F2 dice “error”, revisen que el micrófono esté conectado y elegido en el sistema. |
+| Dibuja renglones sin que nadie hable | Bajen la sensibilidad (F2 en la cabina o desde el panel). |
 | El panel no abre en el celular | Mismo Wi-Fi que la computadora. El firewall de Windows puede preguntar si permite Python: digan que sí (red privada). |
 | La proyección se ve deslavada | Oscurezcan el espacio. El fondo ya es negro puro. |
 
