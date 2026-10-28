@@ -8,7 +8,7 @@
 #                                       computadora (Opción B), por ejemplo:
 #                                       ./iniciar.sh solo-proyeccion 192.168.1.20
 #
-#  La primera vez: chmod +x iniciar.sh   (y necesita internet para instalar)
+#  La primera vez: chmod +x iniciar.sh   (no necesita internet ni instalar nada)
 # ============================================================
 cd "$(dirname "$0")"
 
@@ -40,17 +40,14 @@ if [ "$1" = "solo-proyeccion" ]; then
   exit 0
 fi
 
-if [ ! -x .venv/bin/python ]; then
-  echo "Instalando (solo la primera vez, necesita internet)..."
-  python3 -m venv .venv || { echo "Falta venv: sudo apt install python3-venv"; exit 1; }
-  # Si alguna pieza opcional no compila en la Pi, se instala lo mínimo necesario.
-  .venv/bin/pip install -r requirements.txt || .venv/bin/pip install fastapi uvicorn websockets || exit 1
-fi
+# No hay que instalar nada: las librerías vienen incluidas. Solo Python 3.10+
+# (Raspberry Pi OS ya lo trae).
+python3 servidor/servidor.py --verificar || exit 1
 
 EXTRA=""
 [ "$1" = "prueba" ] && EXTRA="--prueba --datos datos/ensayo.json"
 
-.venv/bin/python servidor/servidor.py --puerto $PUERTO $EXTRA &
+python3 servidor/servidor.py --puerto $PUERTO $EXTRA &
 SERVIDOR=$!
 trap 'kill $SERVIDOR 2>/dev/null' EXIT
 sleep 4

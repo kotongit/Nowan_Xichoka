@@ -13,8 +13,17 @@ rem  esta "a la derecha" en la configuracion de pantallas, deja 1920.
 set POS_PROYECTOR=1920
 set PUERTO=8000
 
-if not exist ".venv\Scripts\python.exe" (
-  echo Primero hay que instalar. Ejecuta instalar.bat
+rem No hay que instalar nada: las librerias vienen incluidas. Solo Python.
+call servidor\buscar_python.bat
+if not defined PY (
+  echo No encontre Python. Instalalo desde https://www.python.org/downloads/
+  echo y en la primera pantalla marca "Add python.exe to PATH".
+  pause
+  exit /b 1
+)
+%PY% servidor\servidor.py --verificar
+if errorlevel 1 (
+  echo Algo fallo al revisar Python. Toma una foto de este mensaje.
   pause
   exit /b 1
 )
@@ -22,7 +31,7 @@ if not exist ".venv\Scripts\python.exe" (
 set EXTRA=
 if /i "%1"=="prueba" set EXTRA=--prueba --datos datos\ensayo.json
 
-start "Nowan Xichoka - servidor (no cerrar)" cmd /k ".venv\Scripts\python.exe servidor\servidor.py --puerto %PUERTO% %EXTRA%"
+start "Nowan Xichoka - servidor (no cerrar)" cmd /k "%PY% servidor\servidor.py --puerto %PUERTO% %EXTRA%"
 timeout /t 3 /nobreak >nul
 
 set NAV=
@@ -30,6 +39,7 @@ if exist "%ProgramFiles%\Google\Chrome\Application\chrome.exe" set NAV=%ProgramF
 if not defined NAV if exist "%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe" set NAV=%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe
 if not defined NAV if exist "%LocalAppData%\Google\Chrome\Application\chrome.exe" set NAV=%LocalAppData%\Google\Chrome\Application\chrome.exe
 if not defined NAV if exist "%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe" set NAV=%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe
+if not defined NAV if exist "%ProgramFiles%\Microsoft\Edge\Application\msedge.exe" set NAV=%ProgramFiles%\Microsoft\Edge\Application\msedge.exe
 if not defined NAV (
   echo No encontre Chrome ni Edge. Abre a mano:
   echo   http://localhost:%PUERTO%/cabina/

@@ -231,7 +231,7 @@
 <section class="seccion">
   <h1><span class="num">03</span> Cómo funciona</h1>
   <div class="adorno">{{ADORNO}}</div>
-  <p>Las pantallas están hechas con <b>HTML, CSS y JavaScript</b> y un <b>pequeño servidor en Python</b> (FastAPI) las conecta. No se necesita internet ni inteligencia artificial: todo corre en una red local. Un solo doble clic (<code>iniciar.bat</code> en Windows, <code>iniciar.command</code> en Mac) abre el servidor y las dos pantallas en modo kiosco.</p>
+  <p>Las pantallas están hechas con <b>HTML, CSS y JavaScript</b> y un <b>pequeño servidor en Python</b> (Starlette) las conecta. No se necesita internet, ni inteligencia artificial, ni instalar librerías: vienen incluidas en el proyecto, todas en Python puro, así que funciona igual en Windows, Mac y Raspberry Pi. Un solo doble clic (<code>iniciar.bat</code> en Windows, <code>iniciar.command</code> en Mac, <code>iniciar.sh</code> en la Pi) abre el servidor y las dos pantallas en modo kiosco.</p>
 
   <div class="arq">
     <div class="bloque"><h3>CABINA</h3><div class="tec">HTML + JS + canvas</div><ul>
@@ -241,7 +241,7 @@
       <li>Botón (Enter) y teclado para el nombre</li>
       <li>Instrucciones con una voz del equipo al azar</li></ul></div>
     <div class="flecha"><b>→</b>WebSocket</div>
-    <div class="bloque"><h3>SERVIDOR</h3><div class="tec">Python + FastAPI</div><ul>
+    <div class="bloque"><h3>SERVIDOR</h3><div class="tec">Python + Starlette</div><ul>
       <li>Recibe cada nueva mariposa</li>
       <li>Pasa el nombre por el filtro</li>
       <li>Guarda la lista en un JSON</li>
@@ -436,7 +436,7 @@ audio/sol/    …</div>
     <tr class="grupo"><td colspan="4">SOFTWARE (TODO GRATUITO)</td></tr>
     <tr><td><span class="tag ok">✓</span></td><td>El sistema completo</td><td>Ya funciona: github.com/kotongit/Nowan_Xichoka (licencia MIT).</td><td><span class="tag ok">LISTO</span></td></tr>
     <tr><td><span class="caja-check"></span></td><td>Chrome o Edge</td><td>Los lanzadores los abren en modo kiosco.</td><td><span class="tag ind">INDISPENSABLE</span></td></tr>
-    <tr><td><span class="caja-check"></span></td><td>Python 3.10 o más nuevo</td><td>Se instala una vez con internet (<code>instalar.bat</code>); el día de la exposición no hace falta internet.</td><td><span class="tag ind">INDISPENSABLE</span></td></tr>
+    <tr><td><span class="caja-check"></span></td><td>Python 3.10 o más nuevo</td><td>Lo único que hay que instalar (python.org, marcar “Add python.exe to PATH”). Las librerías ya vienen incluidas; no hace falta internet.</td><td><span class="tag ind">INDISPENSABLE</span></td></tr>
     <tr><td><span class="caja-check"></span></td><td>Grabaciones de voz del equipo</td><td>Audacity o notas de voz del celular. Una carpeta por persona.</td><td><span class="tag imp">IMPORTANTE</span></td></tr>
   </table>
 

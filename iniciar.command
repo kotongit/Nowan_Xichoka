@@ -10,15 +10,13 @@ cd "$(dirname "$0")"
 POS_PROYECTOR=1920
 PUERTO=8000
 
-if [ ! -x .venv/bin/python ]; then
-  echo "Instalando (solo la primera vez, necesita internet)..."
-  python3 -m venv .venv && .venv/bin/pip install -r requirements.txt || exit 1
-fi
+# No hay que instalar nada: las librerías vienen incluidas. Solo Python 3.10+.
+python3 servidor/servidor.py --verificar || { echo "Instala Python desde https://www.python.org/downloads/"; read -r; exit 1; }
 
 EXTRA=""
 [ "$1" = "prueba" ] && EXTRA="--prueba --datos datos/ensayo.json"
 
-.venv/bin/python servidor/servidor.py --puerto $PUERTO $EXTRA &
+python3 servidor/servidor.py --puerto $PUERTO $EXTRA &
 SERVIDOR=$!
 trap 'kill $SERVIDOR 2>/dev/null' EXIT
 sleep 3

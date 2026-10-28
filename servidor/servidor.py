@@ -8,8 +8,13 @@ Lo único que viaja y se guarda por cada historia es:
     { id, nombre (o null), hora, rasgos: { duracion, volumen, lineas } }
 Nunca audio. Nunca texto de la historia.
 
+No hace falta instalar nada: las librerías van incluidas en servidor/vendor
+(todas en Python puro, funcionan en cualquier sistema). Solo se necesita
+Python 3.10 o más nuevo.
+
 Uso:
     python servidor/servidor.py                 # exposición
+    python servidor/servidor.py --verificar     # solo revisa que todo esté bien y sale
     python servidor/servidor.py --prueba        # con botones de mariposas de prueba en el panel
     python servidor/servidor.py --datos datos/ensayo.json --prueba
 """
@@ -21,17 +26,30 @@ import os
 import random
 import secrets
 import socket
+import sys
 import time
 from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
 
-import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import RedirectResponse
-from fastapi.staticfiles import StaticFiles
+if sys.version_info < (3, 10):
+    sys.exit(f"Nowan Xichoka necesita Python 3.10 o más nuevo (este es {sys.version.split()[0]}). "
+             "Descárgalo de python.org.")
 
-from filtro import Filtro
+# Las librerías incluidas en el proyecto van primero, antes que cualquier
+# otra que haya instalada en la computadora.
+sys.path.insert(0, str(Path(__file__).resolve().parent / "vendor"))
+
+import uvicorn  # noqa: E402
+from starlette.applications import Starlette  # noqa: E402
+from starlette.middleware import Middleware  # noqa: E402
+from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
+from starlette.responses import JSONResponse, RedirectResponse  # noqa: E402
+from starlette.routing import Mount, Route, WebSocketRoute  # noqa: E402
+from starlette.staticfiles import StaticFiles  # noqa: E402
+from starlette.websockets import WebSocket, WebSocketDisconnect  # noqa: E402
+
+from filtro import Filtro  # noqa: E402
 
 RAIZ = Path(__file__).resolve().parent.parent
 WEB = RAIZ / "web"
@@ -190,9 +208,6 @@ async def ciclo_de_vida(app):
         tarea.cancel()
 
 
-app = FastAPI(lifespan=ciclo_de_vida)
-
-
 def es_local(ws: WebSocket) -> bool:
     host = ws.client.host if ws.client else ""
     return host in ("127.0.0.1", "::1", "localhost")
@@ -209,8 +224,9 @@ def mensaje_estado(rol: str) -> dict:
     return mensaje
 
 
-@app.websocket("/ws")
-async def websocket(ws: WebSocket, rol: str, clave: str = ""):
+async def websocket(ws: WebSocket):
+    rol = ws.query_params.get("rol", "")
+    clave = ws.query_params.get("clave", "")
     if rol not in conexiones.por_rol:
         await ws.close(code=4400)
         return
@@ -341,7 +357,6 @@ async def del_panel(mensaje: dict):
 # Páginas
 # ---------------------------------------------------------------------------
 
-@app.middleware("http")
 async def sin_cache(request, call_next):
     # Que el navegador siempre pida la versión más nueva de las páginas y
     # scripts; si no, después de editar el código se sigue viendo el viejo.
@@ -354,8 +369,7 @@ CLIPS = ("bienvenida", "nombre", "salida")
 FORMATOS = (".mp3", ".m4a", ".wav", ".ogg", ".webm")
 
 
-@app.get("/api/voces")
-async def voces():
+async def voces(request):
     """
     Las grabaciones de las instrucciones. Cada integrante tiene su carpeta:
         audio/ana/bienvenida.mp3, audio/ana/nombre.mp3, audio/ana/salida.mp3
@@ -371,20 +385,28 @@ async def voces():
                 clips[archivo.stem] = "/" + archivo.relative_to(RAIZ).as_posix()
         if clips:
             resultado[lugar.name if lugar != carpeta else "_"] = clips
-    return resultado
+    return JSONResponse(resultado)
 
 
-@app.get("/")
-async def inicio():
+async def inicio(request):
     return RedirectResponse("/inicio/")
 
 
-app.mount("/inicio", StaticFiles(directory=WEB / "inicio", html=True), name="inicio")
-app.mount("/cabina", StaticFiles(directory=WEB / "cabina", html=True), name="cabina")
-app.mount("/proyeccion", StaticFiles(directory=WEB / "proyeccion", html=True), name="proyeccion")
-app.mount("/panel", StaticFiles(directory=WEB / "panel", html=True), name="panel")
-app.mount("/comun", StaticFiles(directory=WEB / "comun"), name="comun")
-app.mount("/audio", StaticFiles(directory=RAIZ / "audio"), name="audio")
+app = Starlette(
+    routes=[
+        Route("/", inicio),
+        Route("/api/voces", voces),
+        WebSocketRoute("/ws", websocket),
+        Mount("/inicio", StaticFiles(directory=WEB / "inicio", html=True)),
+        Mount("/cabina", StaticFiles(directory=WEB / "cabina", html=True)),
+        Mount("/proyeccion", StaticFiles(directory=WEB / "proyeccion", html=True)),
+        Mount("/panel", StaticFiles(directory=WEB / "panel", html=True)),
+        Mount("/comun", StaticFiles(directory=WEB / "comun")),
+        Mount("/audio", StaticFiles(directory=RAIZ / "audio")),
+    ],
+    middleware=[Middleware(BaseHTTPMiddleware, dispatch=sin_cache)],
+    lifespan=ciclo_de_vida,
+)
 
 
 def ip_local() -> str:
@@ -409,7 +431,13 @@ def main():
                         help="cada cuántos minutos nace una mariposa sin nombre sola (0 = nunca)")
     parser.add_argument("--cabina-remota", action="store_true",
                         help="permite abrir la cabina desde otra computadora (no recomendado)")
+    parser.add_argument("--verificar", action="store_true",
+                        help="solo revisa que Python y las librerías funcionen, y sale")
     args = parser.parse_args()
+
+    if args.verificar:
+        print(f"Python {sys.version.split()[0]} · Starlette y Uvicorn listos. Todo bien: usa iniciar.")
+        return
 
     CONFIG["datos"] = args.datos.resolve()
     CONFIG["clave"] = args.clave or f"{secrets.randbelow(10000):04d}"
@@ -430,7 +458,9 @@ def main():
         print("  MODO PRUEBA: el panel puede crear mariposas de prueba.")
     print()
 
-    uvicorn.run(app, host="0.0.0.0", port=args.puerto, log_level="warning")
+    # wsproto y h11 son las versiones en Python puro: funcionan en cualquier computadora.
+    uvicorn.run(app, host="0.0.0.0", port=args.puerto, log_level="warning",
+                http="h11", ws="wsproto", loop="asyncio")
 
 
 if __name__ == "__main__":

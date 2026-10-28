@@ -32,17 +32,23 @@ cabina (navegador)  ──WebSocket──►  servidor (Python)  ──WebSocket
 | `docs/Nowan_Xichoka.pdf` | El documento del proyecto (versión final) | Todos |
 | `docs/fuente/` | De dónde sale el PDF: `documento.html` + `construir.py` (WeasyPrint) | — |
 
-Todo corre en red local. **No necesita internet** el día de la exposición (solo para instalar).
+Todo corre en red local. **No necesita internet ni instalar librerías**: vienen incluidas en
+`servidor/vendor/` (Starlette y Uvicorn, todo en Python puro), así que funciona igual en
+Windows, Mac, Linux y Raspberry Pi, con cualquier Python desde 3.10.
 
 ---
 
-## Instalar (una sola vez, con internet)
+## Lo que necesita la computadora
 
-Necesitan **Python 3.10 o más nuevo** y **Chrome o Edge**.
+Solo **Python 3.10 o más nuevo** y **Chrome o Edge** (o Chromium en la Pi). Nada más.
 
-- **Windows:** doble clic en `instalar.bat`.
-  (Si no tienen Python: descárguenlo de python.org y marquen *Add python.exe to PATH*.)
-- **Mac:** `iniciar.command` instala solo la primera vez.
+- **Windows:** instalen Python desde [python.org](https://www.python.org/downloads/) y en la
+  primera pantalla marquen **Add python.exe to PATH**. Luego `instalar.bat` revisa que todo
+  esté bien (ya no descarga nada).
+- **Mac:** Python desde python.org.
+- **Raspberry Pi OS:** ya trae Python 3.11 (desde la versión “Bookworm”).
+
+Para revisar a mano: `python servidor/servidor.py --verificar` (en Windows, `py servidor\servidor.py --verificar`).
 
 ## Arrancar
 
@@ -72,7 +78,7 @@ de los datos reales, y el panel muestra botones para crear mariposas de prueba
 También se puede arrancar a mano:
 
 ```bash
-.venv/bin/python servidor/servidor.py --prueba --datos datos/ensayo.json --clave 1234
+python3 servidor/servidor.py --prueba --datos datos/ensayo.json --clave 1234
 ```
 
 Y abrir `http://localhost:8000/` para ver todas las páginas.
@@ -217,9 +223,11 @@ En `servidor/filtro.py`. Capas:
 Pruebas automáticas:
 
 ```bash
-.venv/bin/pip install -r requirements-dev.txt
-.venv/bin/python -m pytest pruebas
+python3 -m pip install -r requirements-dev.txt
+python3 -m pytest pruebas
 ```
+
+(`requirements-dev.txt` es solo para las pruebas: pytest y httpx. Para usar el proyecto no hace falta.)
 
 ---
 

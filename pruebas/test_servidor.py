@@ -5,9 +5,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "servidor"))
 
 import pytest
-from fastapi.testclient import TestClient
 
-import servidor
+import servidor  # primero: pone servidor/vendor al frente del path
+from starlette.testclient import TestClient  # noqa: E402
 
 
 @pytest.fixture
