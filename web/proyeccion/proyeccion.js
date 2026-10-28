@@ -4,8 +4,13 @@
 // Cuando llega la 151, la más antigua baja, se posa en la parte baja de la
 // pared y florece como cempasúchil. Su nombre se queda en la flor.
 //
+// Los dos límites (mariposas en vuelo y flores en el campo) se cambian desde
+// el panel, para equipos lentos como una Raspberry Pi. Cuando el campo llega
+// a su límite de flores, cada flor nueva toma el lugar de la más vieja.
+//
 // Parámetros de la URL:
 //   ?demo=40      sin servidor: crea 40 mariposas de prueba y luego una cada 4 s
+//   ?vuelo=150&flores=1500   límites para el modo demo (con servidor los manda el panel)
 //   ?origen=0.5   de qué punto del borde inferior nacen las mariposas (0 = izq., 1 = der.)
 
 import { conectar } from "../comun/conexion.js";
@@ -13,12 +18,13 @@ import {
   aspecto, azar, crearAlas, dibujarBrillo, dibujarFlor, dibujarMariposa, limitar, mezclar,
 } from "../comun/mariposa.js";
 
-const MAX_VUELO = 150;
 const DURACION_FLORACION = 2.6;   // segundos
 const DURACION_DESTACADA = 45;    // la recién llegada brilla un rato para que la encuentren
 
 const parametros = new URLSearchParams(location.search);
 const ORIGEN_X = limitar(parseFloat(parametros.get("origen") ?? "0.5"), 0, 1);
+let maxVuelo = parseInt(parametros.get("vuelo") ?? "150");
+let maxFlores = parseInt(parametros.get("flores") ?? "1500");
 
 const lienzo = document.getElementById("pared");
 const ctx = lienzo.getContext("2d");
@@ -74,13 +80,15 @@ function permutacion(fila) {
 // Lugar de la flor número `n` (0 = la primera que floreció). Siempre el mismo,
 // para que al reiniciar el campo quede idéntico. Dentro de cada fila el orden
 // es al azar, para que no se llene de izquierda a derecha como una impresora.
+// Pasando el límite de flores, la flor n ocupa exactamente el lugar de la n - maxFlores.
 function lugarFlor(n) {
   const { porFila, maxFilas, dx, dy, margen } = medidas;
-  const fila = Math.floor(n / porFila);
-  const col = permutacion(fila)[n % porFila];
+  const lugar = n % maxFlores;
+  const fila = Math.floor(lugar / porFila);
+  const col = permutacion(fila)[lugar % porFila];
   const filaVisible = fila % maxFilas;
   const capa = Math.floor(fila / maxFilas);
-  const rnd = azar(n * 7919 + 1);
+  const rnd = azar(lugar * 7919 + 1);
   return {
     x: margen + (col + 0.5) * dx + (filaVisible % 2 ? dx / 2 : 0) + (rnd() - 0.5) * dx * 0.6,
     y: H - margen - filaVisible * dy + (rnd() - 0.5) * dy * 0.6 - capa * dy * 0.3,
@@ -89,7 +97,7 @@ function lugarFlor(n) {
 
 function alturaCampo(n) {
   if (n <= 0) return H;
-  const filas = Math.min(medidas.maxFilas, Math.ceil(n / medidas.porFila));
+  const filas = Math.min(medidas.maxFilas, Math.ceil(Math.min(n, maxFlores) / medidas.porFila));
   return H - medidas.margen - filas * medidas.dy - medidas.flor * 0.6;
 }
 
@@ -242,14 +250,17 @@ function redibujarCampo() {
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     c.clearRect(0, 0, W, H);
   }
-  for (let n = 0; n < flores; n++) fijarFlor(entradas[n], n);
+  // Solo las últimas `maxFlores`: las anteriores ya quedaron tapadas.
+  for (let n = primeraFlor(); n < flores; n++) fijarFlor(entradas[n], n);
   redibujarNombres();
 }
 
 function redibujarNombres() {
   ctxNombres.clearRect(0, 0, W, H);
-  for (let n = 0; n < flores; n++) nombreFlor(ctxNombres, entradas[n], n);
+  for (let n = primeraFlor(); n < flores; n++) nombreFlor(ctxNombres, entradas[n], n);
 }
+
+const primeraFlor = () => Math.max(0, flores - maxFlores);
 
 // ---------------------------------------------------------------------------
 // Llegada de entradas
@@ -257,7 +268,7 @@ function redibujarNombres() {
 
 function reconstruir(lista) {
   entradas = [...lista].sort((a, b) => a.id - b.id);
-  flores = Math.max(0, entradas.length - MAX_VUELO);
+  flores = Math.max(0, entradas.length - maxVuelo);
   volando = entradas.slice(flores).map((e) => crearMariposa(e, false));
   redibujarCampo();
   vacio = entradas.length ? 0 : 1;
@@ -267,16 +278,28 @@ function agregar(entrada) {
   if (entradas.some((e) => e.id === entrada.id)) return;
   entradas.push(entrada);
   volando.push(crearMariposa(entrada, true));
+  aterrizarUna();
+}
 
-  // Regla de las 150: la más antigua que sigue volando baja a florecer.
+// Regla de las 150: si vuelan de más, la más antigua baja a florecer.
+// Si alguien baja el límite desde el panel, bajan de una en una (ver paso()).
+function aterrizarUna() {
   const enVuelo = volando.filter((m) => m.estado === "volando");
-  if (enVuelo.length > MAX_VUELO) {
-    const mayor = enVuelo.reduce((a, b) => (a.entrada.id < b.entrada.id ? a : b));
-    const n = entradas.indexOf(mayor.entrada);
-    const lugar = lugarFlor(n);
-    mayor.estado = "bajando";
-    mayor.indiceFlor = n;
-    mayor.objetivo = { x: lugar.x, y: lugar.y };
+  if (enVuelo.length <= maxVuelo) return false;
+  const mayor = enVuelo.reduce((a, b) => (a.entrada.id < b.entrada.id ? a : b));
+  const n = entradas.indexOf(mayor.entrada);
+  const lugar = lugarFlor(n);
+  mayor.estado = "bajando";
+  mayor.indiceFlor = n;
+  mayor.objetivo = { x: lugar.x, y: lugar.y };
+  return true;
+}
+
+function aplicarLimites(vuelo, nuevasFlores) {
+  maxVuelo = vuelo;
+  if (nuevasFlores !== maxFlores) {
+    maxFlores = nuevasFlores;
+    redibujarCampo();
   }
 }
 
@@ -388,15 +411,22 @@ function paso() {
 
   for (const m of volando) actualizarMariposa(m, dt);
 
+  paso.espera = (paso.espera ?? 0) - dt;
+  if (paso.espera <= 0 && aterrizarUna()) paso.espera = 0.3;
+
   // Las que terminaron de florecer pasan a la capa fija del campo.
   const terminadas = volando.filter((m) => m.estado === "floreciendo" && m.t >= DURACION_FLORACION);
   if (terminadas.length) {
     terminadas.sort((a, b) => a.indiceFlor - b.indiceFlor);
+    let reemplazo = false;
     for (const m of terminadas) {
       fijarFlor(m.entrada, m.indiceFlor);
-      nombreFlor(ctxNombres, m.entrada, m.indiceFlor);
       flores = Math.max(flores, m.indiceFlor + 1);
+      // Si tomó el lugar de una flor vieja, el nombre viejo tiene que irse.
+      if (m.indiceFlor >= maxFlores) reemplazo = true;
+      else nombreFlor(ctxNombres, m.entrada, m.indiceFlor);
     }
+    if (reemplazo) redibujarNombres();
     volando = volando.filter((m) => !terminadas.includes(m));
   }
 
@@ -445,6 +475,7 @@ if (parametros.has("demo")) {
     alCambiarEstado: (ok) => indicador.classList.toggle("desconectado", !ok),
     alMensaje(mensaje) {
       if (mensaje.tipo === "estado") {
+        aplicarLimites(mensaje.max_vuelo, mensaje.max_flores);
         // Al reconectar: si solo faltan entradas nuevas, se agregan con animación;
         // si la lista cambió por completo (servidor con otros datos), se reconstruye.
         const ultimo = entradas.at(-1)?.id ?? 0;
@@ -459,6 +490,8 @@ if (parametros.has("demo")) {
         agregar(mensaje.entrada);
       } else if (mensaje.tipo === "actualizada") {
         actualizarNombre(mensaje.entrada);
+      } else if (mensaje.tipo === "limites") {
+        aplicarLimites(mensaje.max_vuelo, mensaje.max_flores);
       }
     },
   });
@@ -467,4 +500,7 @@ if (parametros.has("demo")) {
 requestAnimationFrame(paso);
 
 // Para depurar desde la consola: window.nowan.agregar({...})
-window.nowan = { agregar, reconstruir, get entradas() { return entradas; }, get volando() { return volando; } };
+window.nowan = {
+  agregar, reconstruir, aplicarLimites,
+  get entradas() { return entradas; }, get volando() { return volando; }, get flores() { return flores; },
+};

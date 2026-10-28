@@ -68,6 +68,10 @@ class Estado:
         self.entradas: list[dict] = []
         self.pausada = False
         self.umbral = 0.006          # umbral de voz del micrófono (0 a 1); la cabina lo calibra sola
+        self.calibrado = False       # True cuando ya hay un umbral guardado (calibrado o ajustado a mano)
+        # Límites de la pared, para equipos lentos (por ejemplo una Raspberry Pi).
+        self.max_vuelo = 150         # mariposas volando a la vez
+        self.max_flores = 1500       # flores en el campo; después, cada nueva toma el lugar de la más vieja
         self.ultima_entrada = 0.0
         self.filtro = Filtro()
         self.cargar()
@@ -77,7 +81,10 @@ class Estado:
             self.entradas = json.loads(self.archivo.read_text(encoding="utf-8"))
         if self.archivo_ajustes.exists():
             ajustes = json.loads(self.archivo_ajustes.read_text(encoding="utf-8"))
+            self.calibrado = "umbral" in ajustes
             self.umbral = ajustes.get("umbral", self.umbral)
+            self.max_vuelo = ajustes.get("max_vuelo", self.max_vuelo)
+            self.max_flores = ajustes.get("max_flores", self.max_flores)
 
     @staticmethod
     def _escribir(archivo: Path, datos):
@@ -92,7 +99,10 @@ class Estado:
         self._escribir(self.archivo, self.entradas)
 
     def guardar_ajustes(self):
-        self._escribir(self.archivo_ajustes, {"umbral": self.umbral})
+        ajustes = {"max_vuelo": self.max_vuelo, "max_flores": self.max_flores}
+        if self.calibrado:
+            ajustes["umbral"] = self.umbral
+        self._escribir(self.archivo_ajustes, ajustes)
 
     def nueva_entrada(self, nombre: str | None, rasgos: dict) -> dict:
         entrada = {
@@ -190,9 +200,10 @@ def es_local(ws: WebSocket) -> bool:
 
 def mensaje_estado(rol: str) -> dict:
     mensaje = {"tipo": "estado", "pausada": estado.pausada, "umbral": estado.umbral,
-               "calibrado": estado.archivo_ajustes.exists()}
+               "calibrado": estado.calibrado}
     if rol in ("proyeccion", "panel"):
         mensaje["entradas"] = estado.entradas
+        mensaje.update(limites())
     if rol == "panel":
         mensaje["prueba"] = CONFIG["prueba"]
     return mensaje
@@ -267,11 +278,16 @@ async def de_la_cabina(ws: WebSocket, mensaje: dict):
         await poner_umbral(mensaje.get("valor"))
 
 
+def limites() -> dict:
+    return {"max_vuelo": estado.max_vuelo, "max_flores": estado.max_flores}
+
+
 async def poner_umbral(valor):
     try:
         estado.umbral = max(0.001, min(0.5, float(valor)))
     except (TypeError, ValueError):
         return
+    estado.calibrado = True
     estado.guardar_ajustes()
     await conexiones.enviar(["cabina", "panel"], {"tipo": "umbral", "valor": estado.umbral})
 
@@ -295,6 +311,17 @@ async def del_panel(mensaje: dict):
 
     elif tipo == "calibrar":
         await conexiones.enviar(["cabina"], {"tipo": "calibrar"})
+
+    elif tipo == "limites":
+        try:
+            if "max_vuelo" in mensaje:
+                estado.max_vuelo = max(10, min(400, int(mensaje["max_vuelo"])))
+            if "max_flores" in mensaje:
+                estado.max_flores = max(50, min(5000, int(mensaje["max_flores"])))
+        except (TypeError, ValueError):
+            return
+        estado.guardar_ajustes()
+        await conexiones.enviar(["proyeccion", "panel"], {"tipo": "limites", **limites()})
 
     elif tipo == "prueba" and CONFIG["prueba"]:
         cantidad = max(1, min(200, int(mensaje.get("cantidad", 1))))

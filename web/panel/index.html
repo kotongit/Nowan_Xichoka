@@ -52,6 +52,9 @@
     #acceso { display: none; }
     #acceso input { font: inherit; padding: 10px; border-radius: 10px; border: 1px solid var(--linea); background: #0006; color: inherit; width: 8em; }
     .oculto { display: none !important; }
+    label.control { display: block; margin: 4px 0 12px; }
+    label.control b { float: right; font-variant-numeric: tabular-nums; color: var(--ambar); }
+    label.control input { display: block; width: 100%; margin-top: 6px; accent-color: var(--ambar); }
     #micEstado.mal { color: var(--rojo); font-weight: 600; }
   </style>
 </head>
@@ -97,6 +100,15 @@
       <button id="calibrar" style="width:100%;margin-top:10px">Calibrar en silencio (3 s)</button>
       <p class="nota"><b>Sensibilidad:</b> a la derecha capta voces más bajitas. La línea roja es el punto donde empieza a “escuchar”. Con la cabina en silencio, la barra debe quedar <b>antes</b> de la línea; al hablar, <b>pasarla</b> (se pone verde). Si no dibuja nada, sube la sensibilidad; si dibuja con el ruido de afuera, bájala. <span id="umbralTexto"></span></p>
       <p class="nota"><b>Calibrar:</b> con la cabina vacía y callada, mide el ruido de fondo 3 segundos y pone el umbral solo.</p>
+    </section>
+
+    <section class="tarjeta">
+      <h2>La pared</h2>
+      <label class="control">Mariposas volando <b id="vueloValor">150</b>
+        <input type="range" id="vuelo" min="10" max="300" step="10"></label>
+      <label class="control">Flores en el campo <b id="floresValor">1500</b>
+        <input type="range" id="maxFlores" min="100" max="5000" step="100"></label>
+      <p class="nota">Si la proyección se ve trabada (por ejemplo en una Raspberry Pi), bajen las mariposas primero. Al bajarlas, las que sobran aterrizan y florecen de una en una. Cuando el campo llega a su límite de flores, cada flor nueva toma el lugar de la más vieja; los nombres siguen guardados.</p>
     </section>
 
     <section class="tarjeta oculto" id="prueba">

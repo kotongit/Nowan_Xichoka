@@ -4,12 +4,12 @@
 import { conectar } from "../comun/conexion.js";
 import { UMBRAL_MAX, UMBRAL_MIN, enBarra as posicion, sensibilidad, umbralDe } from "../comun/sensibilidad.js";
 
-const MAX_VUELO = 150;
 const MOSTRAR = 80;
 
 const $ = (id) => document.getElementById(id);
 let entradas = [];
 let umbral = 0.035;
+let maxVuelo = 150;
 let conexion = null;
 
 const enBarra = (nivel) => `${posicion(nivel)}%`;
@@ -41,6 +41,7 @@ function alMensaje(m) {
       ponerPausa(m.pausada);
       ponerUmbral(m.umbral);
       $("prueba").classList.toggle("oculto", !m.prueba);
+      ponerLimites(m);
       pintarLista();
       break;
     case "nueva":
@@ -54,6 +55,7 @@ function alMensaje(m) {
       break;
     }
     case "pausa": ponerPausa(m.valor); break;
+    case "limites": ponerLimites(m); pintarLista(); break;
     case "umbral": ponerUmbral(m.valor); break;
     case "conexiones":
       $("chipCabina").classList.toggle("ok", m.cabina > 0);
@@ -77,6 +79,15 @@ function ponerPausa(pausada) {
   b.dataset.pausada = pausada ? "1" : "";
 }
 
+function ponerLimites({ max_vuelo, max_flores }) {
+  maxVuelo = max_vuelo;
+  // No mover el control mientras alguien lo está arrastrando.
+  if (document.activeElement !== $("vuelo")) $("vuelo").value = max_vuelo;
+  if (document.activeElement !== $("maxFlores")) $("maxFlores").value = max_flores;
+  $("vueloValor").textContent = max_vuelo;
+  $("floresValor").textContent = max_flores;
+}
+
 function ponerUmbral(u) {
   umbral = u;
   $("umbral").value = sensibilidad(u);
@@ -97,8 +108,8 @@ function hora(iso) {
 function pintarLista() {
   const total = entradas.length;
   $("total").textContent = total;
-  $("volando").textContent = Math.min(total, MAX_VUELO);
-  $("flores").textContent = Math.max(0, total - MAX_VUELO);
+  $("volando").textContent = Math.min(total, maxVuelo);
+  $("flores").textContent = Math.max(0, total - maxVuelo);
 
   const lista = $("lista");
   lista.replaceChildren(...entradas.slice(-MOSTRAR).reverse().map((e) => {
@@ -140,6 +151,12 @@ $("umbral").oninput = (e) => mandarUmbral(umbralDe(+e.target.value));
 $("menos").onclick = () => mandarUmbral(umbral * 1.15); // menos sensible = umbral más alto
 $("mas").onclick = () => mandarUmbral(umbral / 1.15);
 $("calibrar").onclick = () => conexion.enviar({ tipo: "calibrar" });
+// Mientras se arrastra solo cambia el número; al soltar se manda (redibujar el
+// campo cuesta, y en una Raspberry Pi no conviene hacerlo a cada paso).
+$("vuelo").oninput = (e) => { $("vueloValor").textContent = e.target.value; };
+$("maxFlores").oninput = (e) => { $("floresValor").textContent = e.target.value; };
+$("vuelo").onchange = (e) => conexion.enviar({ tipo: "limites", max_vuelo: +e.target.value });
+$("maxFlores").onchange = (e) => conexion.enviar({ tipo: "limites", max_flores: +e.target.value });
 for (const b of document.querySelectorAll("#prueba button")) {
   b.onclick = () => conexion.enviar({ tipo: "prueba", cantidad: +b.dataset.cantidad });
 }

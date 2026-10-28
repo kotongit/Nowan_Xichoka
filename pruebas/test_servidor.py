@@ -129,3 +129,22 @@ def test_voces_de_cada_integrante(cliente, tmp_path, monkeypatch):
         "ana": {c: f"/audio/ana/{c}.mp3" for c in ["bienvenida", "nombre", "salida"]},
         "beto": {"bienvenida": "/audio/beto/bienvenida.m4a"},
     }
+
+
+def test_limites_de_la_pared(cliente, tmp_path):
+    with cliente.websocket_connect("/ws?rol=panel&clave=1234") as panel, \
+         cliente.websocket_connect("/ws?rol=proyeccion") as proyeccion, \
+         cliente.websocket_connect("/ws?rol=cabina") as cabina:
+        estado = recibir_hasta(proyeccion, "estado")
+        assert (estado["max_vuelo"], estado["max_flores"]) == (150, 1500)
+        recibir_hasta(panel, "estado")
+
+        panel.send_json({"tipo": "limites", "max_vuelo": 60, "max_flores": 99999})
+        limites = recibir_hasta(proyeccion, "limites")
+        assert (limites["max_vuelo"], limites["max_flores"]) == (60, 5000)  # se recorta al máximo permitido
+
+    # Guardar los límites no cuenta como calibrar: la cabina se sigue calibrando sola.
+    with cliente.websocket_connect("/ws?rol=cabina") as cabina:
+        assert recibir_hasta(cabina, "estado")["calibrado"] is False
+    otro = servidor.Estado(tmp_path / "mariposas.json")
+    assert (otro.max_vuelo, otro.max_flores) == (60, 5000)

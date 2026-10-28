@@ -48,6 +48,9 @@ Necesitan **Python 3.10 o más nuevo** y **Chrome o Edge**.
 
 - **Windows:** doble clic en `iniciar.bat`
 - **Mac:** doble clic en `iniciar.command`
+- **Linux / Raspberry Pi:** `./iniciar.sh` (la primera vez: `chmod +x iniciar.sh`; instala solo).
+  Si la Pi solo va a mostrar la proyección y el servidor corre en otra computadora:
+  `./iniciar.sh solo-proyeccion 192.168.1.20` (la IP que imprime el servidor).
 
 Esto abre:
 1. la ventana del **servidor** (no la cierren; ahí aparece la dirección y la **clave del panel**),
@@ -164,6 +167,10 @@ Desde ahí:
   quedar *antes* de la línea roja; al hablar, *pasarla*. Si capta ruido de afuera, bajen la sensibilidad.
   Se guarda en `datos/ajustes.json`. El mismo control está en la cabina (F2).
 - **Quitar nombre** — la mariposa (o flor) se queda, pero sin nombre. Se toca dos veces.
+- **La pared** — cuántas mariposas vuelan a la vez (150) y cuántas flores guarda el campo (1500).
+  Para equipos lentos como una Raspberry Pi: bajen primero las mariposas (prueben 60–80).
+  Al llegar al límite de flores, cada flor nueva toma el lugar de la más vieja. Se guarda en
+  `datos/ajustes.json`.
 
 La clave cambia cada vez que se abre el servidor (o fíjenla con `--clave 1234`).
 
